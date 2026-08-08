@@ -18273,9 +18273,9 @@ importers:
       '@radix-ui/react-toast':
         specifier: ^1.2.15
         version: 1.2.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@tools/design-tokens':
+      '@tools/design-tokens-elchika':
         specifier: workspace:*
-        version: link:../../packages/design-tokens
+        version: link:../../packages/design-tokens-elchika
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
