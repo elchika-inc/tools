@@ -25,11 +25,6 @@ export function App() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-2">
             <a href="/" className="text-sm text-primary hover:underline">
-              ← Tools トップに戻る
-            </a>
-          </div>
-          <div className="mb-2">
-            <a href="/" className="text-sm text-primary hover:underline">
               &larr; Tools トップに戻る
             </a>
           </div>

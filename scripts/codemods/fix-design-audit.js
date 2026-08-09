@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(SCRIPT_DIR, "../..");
 const BACKLINK_TEXT = "← Tools トップに戻る";
+const BACKLINK_MARKER = "トップに戻る";
 const H1_TOKENS = ["text-3xl", "font-bold", "tracking-tight"];
 const DS004_PATTERN =
   /\b(?:text|bg|border)-(?:blue|red|green|yellow|purple|pink|orange|cyan|teal|indigo|violet|rose|fuchsia|sky|lime|amber|emerald|slate|gray|zinc|neutral|stone)-\d{2,3}\b/;
@@ -25,8 +26,12 @@ function lineIndentAt(source, position) {
   return source.slice(lineStart, position).match(/^\s*/)?.[0] ?? "";
 }
 
+function hasBacklink(source) {
+  return source.includes(BACKLINK_MARKER);
+}
+
 function addBacklink(source) {
-  if (source.includes(BACKLINK_TEXT)) return source;
+  if (hasBacklink(source)) return source;
   const header = source.match(/<header\b[^>]*>/);
   if (!header || header.index === undefined) return source;
 
@@ -170,10 +175,9 @@ export function fixDesignAuditSource(source, appName) {
   return {
     source: updated,
     ds002Changed:
-      updated !== original &&
-      (updated.includes(BACKLINK_TEXT) || updated.includes(H1_TOKENS.join(" "))),
+      updated !== original && (hasBacklink(updated) || updated.includes(H1_TOKENS.join(" "))),
     ds004Replacements: status.replacements,
-    unresolvedDs002: !updated.includes(BACKLINK_TEXT) || !updated.includes(H1_TOKENS.join(" ")),
+    unresolvedDs002: !hasBacklink(updated) || !updated.includes(H1_TOKENS.join(" ")),
   };
 }
 

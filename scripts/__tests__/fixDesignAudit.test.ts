@@ -69,6 +69,22 @@ describe("fixDesignAuditSource", () => {
 
     expect(fixDesignAuditSource(once, "sample").source).toBe(once);
   });
+
+  it.each(["←", "&larr;", "&#8592;"])("既存 backlink の矢印表記 %s を重複挿入しない", (arrow) => {
+    const source = `export function App() {
+  return <header>
+    <a href="/">${arrow} Tools トップに戻る</a>
+    <h1 className="text-3xl font-bold tracking-tight">Title</h1>
+  </header>;
+}`;
+
+    const result = fixDesignAuditSource(source, "sample");
+
+    expect(result.source).toBe(source);
+    expect(result.source.match(/トップに戻る/g)).toHaveLength(1);
+    expect(result.ds002Changed).toBe(false);
+    expect(result.unresolvedDs002).toBe(false);
+  });
 });
 
 describe("replaceSemanticStatusColors", () => {
