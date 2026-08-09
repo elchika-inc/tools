@@ -12,6 +12,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      'zlibjs/bin/gunzip.min.js': path.resolve(__dirname, './src/shims/zlib-gunzip.ts'),
+      path: path.resolve(__dirname, './src/shims/path.ts'),
       '@': path.resolve(__dirname, './src'),
       '@components': path.resolve(__dirname, './src/components'),
       '@utils': path.resolve(__dirname, './src/utils'),
