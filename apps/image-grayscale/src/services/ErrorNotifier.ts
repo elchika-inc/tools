@@ -35,10 +35,10 @@ export interface ErrorNotifier {
  *
  * ## 使用方法
  * ```typescript
- * import { toast } from '@hooks/useToast';
+ * import { toast } from '@/components/ui/toast';
  * import { ToastErrorNotifier } from '@services/ErrorNotifier';
  *
- * const notifier = new ToastErrorNotifier(toast);
+ * const notifier = new ToastErrorNotifier((payload) => toast.add(payload));
  * notifier.error('エラーが発生しました');
  * ```
  */
@@ -47,31 +47,30 @@ export class ToastErrorNotifier implements ErrorNotifier {
     private toast: (opts: {
       title?: string;
       description?: string;
-      variant?: 'default' | 'destructive' | 'success';
-    }) => void
+      type?: "error" | "success";
+    }) => void,
   ) {}
 
   error(message: string): void {
     this.toast({
-      title: 'エラー',
+      title: "エラー",
       description: message,
-      variant: 'destructive',
+      type: "error",
     });
   }
 
   success(message: string): void {
     this.toast({
-      title: '成功',
+      title: "成功",
       description: message,
-      variant: 'success',
+      type: "success",
     });
   }
 
   info(message: string): void {
     this.toast({
-      title: '情報',
+      title: "情報",
       description: message,
-      variant: 'default',
     });
   }
 }
@@ -102,14 +101,14 @@ export class AlertErrorNotifier implements ErrorNotifier {
  */
 export class SilentErrorNotifier implements ErrorNotifier {
   error(message: string): void {
-    console.error('[Error]', message);
+    console.error("[Error]", message);
   }
 
   success(message: string): void {
-    console.log('[Success]', message);
+    console.log("[Success]", message);
   }
 
   info(message: string): void {
-    console.info('[Info]', message);
+    console.info("[Info]", message);
   }
 }
