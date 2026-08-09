@@ -1,5 +1,5 @@
-import { toast } from '@hooks/useToast';
 import type { Change } from '@types';
+import { toast } from "@/components/ui/toast";
 
 /**
  * クリップボードにテキストをコピー
@@ -7,17 +7,17 @@ import type { Change } from '@types';
 export async function copyToClipboard(text: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(text);
-    toast({
+    toast.add({
       title: 'コピーしました',
       description: 'クリップボードにコピーしました',
-      variant: 'success',
+      type: "success",
     });
   } catch (error) {
     console.error('Clipboard error:', error);
-    toast({
+    toast.add({
       title: 'エラー',
       description: 'クリップボードへのコピーに失敗しました',
-      variant: 'destructive',
+      type: "error",
     });
     throw error;
   }

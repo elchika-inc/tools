@@ -1,10 +1,10 @@
 import { Button } from '@components/ui/button';
 import { Label } from '@components/ui/label';
 import { Textarea } from '@components/ui/textarea';
-import { toast } from '@hooks/useToast';
 import { loadTextFile } from '@services/fileLoader';
 import { Upload } from 'lucide-react';
 import { useRef } from 'react';
+import { toast } from "@/components/ui/toast";
 
 interface TextInputProps {
   label: string;
@@ -28,16 +28,16 @@ export function TextInput({ label, value, onChange, onFileLoad, placeholder }: T
     try {
       const text = await loadTextFile(file);
       onFileLoad(text);
-      toast({
+      toast.add({
         title: 'ファイルを読み込みました',
         description: `${file.name} を読み込みました`,
-        variant: 'success',
+        type: "success",
       });
     } catch (error) {
-      toast({
+      toast.add({
         title: 'エラー',
         description: error instanceof Error ? error.message : 'ファイルの読み込みに失敗しました',
-        variant: 'destructive',
+        type: "error",
       });
     }
 

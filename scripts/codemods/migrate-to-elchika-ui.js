@@ -239,9 +239,9 @@ function updatePackageJson(appDir) {
 }
 
 function migrateToast(appDir) {
-  const files = globSync(path.join(appDir, "src", "**", "*.tsx"));
+  const files = globSync(path.join(appDir, "src", "**", "*.{ts,tsx}"));
   for (const file of files) {
-    if (file.endsWith(".stories.tsx") || file.includes(`${path.sep}__tests__${path.sep}`)) continue;
+    if (file.includes(".stories.") || file.includes(`${path.sep}__tests__${path.sep}`)) continue;
     const source = readFileSync(file, "utf8");
     const transformed = transformToastCalls(source);
     if (transformed !== source) writeFileSync(file, transformed);

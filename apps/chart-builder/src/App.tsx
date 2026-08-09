@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
 import {
   parseTableData,
   renderBarChart,
@@ -19,6 +18,7 @@ import {
   renderPieChart,
   downloadCanvasAsPng,
 } from '@/utils/chartRenderer';
+import { ToastToaster } from "@/components/ui/toast";
 
 type ChartType = 'bar' | 'line' | 'pie';
 
@@ -79,96 +79,96 @@ export default function App() {
     downloadCanvasAsPng(canvas, `chart-${chartType}.png`);
   }, [chartType]);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-5xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Chart Builder</h1>
-          <p className="text-muted-foreground">
-            Interactive chart builder with bar, line, and pie charts
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-5xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Chart Builder</h1>
+            <p className="text-muted-foreground">
+              Interactive chart builder with bar, line, and pie charts
+            </p>
+          </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Chart Type</Label>
-                <Select
-                  value={chartType}
-                  onValueChange={(v) => setChartType(v as ChartType)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bar">Bar Chart</SelectItem>
-                    <SelectItem value="line">Line Chart</SelectItem>
-                    <SelectItem value="pie">Pie Chart</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-              </div>
-              {chartType !== 'pie' && (
-                <>
-                  <div className="space-y-2">
-                    <Label>X Axis Label</Label>
-                    <Input
-                      value={xAxisLabel}
-                      onChange={(e) => setXAxisLabel(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Y Axis Label</Label>
-                    <Input
-                      value={yAxisLabel}
-                      onChange={(e) => setYAxisLabel(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
-              <div className="space-y-2">
-                <Label>Data (label, value per line)</Label>
-                <Textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Label, Value"
-                  className="font-mono min-h-[200px]"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Optional: label, value, #color
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-1">
+              <CardHeader>
+                <CardTitle>Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Chart Type</Label>
+                  <Select
+                    value={chartType}
+                    onValueChange={(v) => setChartType(v as ChartType)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bar">Bar Chart</SelectItem>
+                      <SelectItem value="line">Line Chart</SelectItem>
+                      <SelectItem value="pie">Pie Chart</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Title</Label>
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+                </div>
+                {chartType !== 'pie' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>X Axis Label</Label>
+                      <Input
+                        value={xAxisLabel}
+                        onChange={(e) => setXAxisLabel(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Y Axis Label</Label>
+                      <Input
+                        value={yAxisLabel}
+                        onChange={(e) => setYAxisLabel(e.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
+                <div className="space-y-2">
+                  <Label>Data (label, value per line)</Label>
+                  <Textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Label, Value"
+                    className="font-mono min-h-[200px]"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Optional: label, value, #color
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Preview</CardTitle>
-                <Button type="button" variant="outline" size="sm" onClick={handleDownload}>
-                  Download PNG
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-md p-4 bg-white flex items-center justify-center overflow-auto">
-                <canvas ref={canvasRef} style={{ maxWidth: '100%' }} />
-              </div>
-              <div className="mt-2 text-xs text-muted-foreground">
-                {dataset.labels.length} data points
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Preview</CardTitle>
+                  <Button type="button" variant="outline" size="sm" onClick={handleDownload}>
+                    Download PNG
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md p-4 bg-white flex items-center justify-center overflow-auto">
+                  <canvas ref={canvasRef} style={{ maxWidth: '100%' }} />
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {dataset.labels.length} data points
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }
