@@ -41,7 +41,7 @@ export default function App() {
   );
 
   const cls =
-    "flex h-10 w-20 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono text-center ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+    "flex h-10 w-20 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono text-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring";
 
   return <ToastToaster>
   <div className="min-h-screen bg-background p-8">

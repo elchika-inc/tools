@@ -93,7 +93,7 @@ export default function App() {
                         type="text"
                         value={timestamp}
                         onChange={(e) => setTimestamp(e.target.value)}
-                        className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                       />
                       <Button type="button" variant="outline" onClick={setNow}>
                         Now
@@ -106,7 +106,7 @@ export default function App() {
                       id="dateInput"
                       type="datetime-local"
                       onChange={(e) => setFromDateInput(e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                     />
                   </div>
                 </div>

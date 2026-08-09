@@ -63,7 +63,7 @@ export default function App() {
                     <Label htmlFor="language">Language</Label>
                     <select
                       id="language"
-                      className="flex h-10 w-[180px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="flex h-10 w-[180px] rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                       value={language}
                       onChange={(e) => setLanguage(e.target.value as Language)}
                     >
@@ -95,7 +95,7 @@ export default function App() {
                     <Label htmlFor="code-input">Input</Label>
                     <textarea
                       id="code-input"
-                      className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                      className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                       placeholder="Paste your code here..."
                       value={code}
                       onChange={(e) => setCode(e.target.value)}

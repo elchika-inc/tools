@@ -31,7 +31,7 @@ export default function App() {
                 <textarea
                   id="json-input"
                   aria-label="JSON array input"
-                  className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none mt-2"
+                  className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none mt-2"
                   placeholder={'[{"name":"Alice","age":30},{"name":"Bob","age":25}]'}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

@@ -139,7 +139,7 @@ export default function App() {
               <CardContent className="space-y-4">
                 <textarea
                   aria-label="Markdown input"
-                  className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                   placeholder="# Slide 1&#10;Content here&#10;---&#10;# Slide 2&#10;More content"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

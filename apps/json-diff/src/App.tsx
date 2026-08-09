@@ -40,7 +40,7 @@ export default function App() {
                   <textarea
                     id="json-a"
                     aria-label="JSON A Input"
-                    className="flex min-h-[250px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[250px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder='{"key": "value"}'
                     value={jsonA}
                     onChange={(e) => setJsonA(e.target.value)}
@@ -58,7 +58,7 @@ export default function App() {
                   <textarea
                     id="json-b"
                     aria-label="JSON B Input"
-                    className="flex min-h-[250px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[250px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder='{"key": "new value"}'
                     value={jsonB}
                     onChange={(e) => setJsonB(e.target.value)}

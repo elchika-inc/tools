@@ -59,7 +59,7 @@ export default function App() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="パスワードを入力..."
-                  className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-lg font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-lg font-mono focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   autoComplete="off"
                 />
               </div>

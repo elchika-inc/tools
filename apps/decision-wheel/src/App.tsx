@@ -135,7 +135,7 @@ export default function App() {
                     <Label htmlFor="choices">Enter one choice per line</Label>
                     <textarea
                       id="choices"
-                      className="flex w-full min-h-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                      className="flex w-full min-h-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                       placeholder={'Pizza\nSushi\nBurger\nSalad'}
                       value={choicesInput}
                       onChange={(e) => handleChoicesChange(e.target.value)}

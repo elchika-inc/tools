@@ -194,7 +194,7 @@ export default function App() {
               <CardContent>
                 <textarea
                   aria-label="マークダウン入力"
-                  className="flex min-h-[520px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 font-mono text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex min-h-[520px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   value={markdown}
                   onChange={(e) => setMarkdown(e.target.value)}
                   placeholder=".md ファイルをドロップするか、マークダウンを入力してください..."

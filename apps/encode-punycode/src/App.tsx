@@ -63,7 +63,7 @@ export default function App() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="日本語.jp or xn--wgv71a309e.jp"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   />
                 </div>
                 <div className="flex flex-col gap-4 justify-center pt-6">

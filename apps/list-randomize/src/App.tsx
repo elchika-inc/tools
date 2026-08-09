@@ -52,7 +52,7 @@ export default function App() {
                   <Label htmlFor="input">Input (1行1項目)</Label>
                   <textarea
                     id="input"
-                    className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder={'Apple\nBanana\nCherry\nDate\nEldberry'}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -63,7 +63,7 @@ export default function App() {
                   <textarea
                     id="output"
                     readOnly
-                    className="flex min-h-[300px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[300px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder="シャッフル結果がここに表示されます..."
                     value={output}
                   />

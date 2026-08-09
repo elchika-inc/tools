@@ -54,7 +54,7 @@ export default function App() {
               <CardContent>
                 <textarea
                   aria-label="Markdownテキスト入力"
-                  className="flex min-h-[500px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  className="flex min-h-[500px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                 />

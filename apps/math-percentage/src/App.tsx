@@ -21,7 +21,7 @@ function CalcRow({ title, children }: { title: string; children: React.ReactNode
 }
 
 const cls =
-  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring";
 
 export default function App() {
   const [a1, setA1] = useState("");

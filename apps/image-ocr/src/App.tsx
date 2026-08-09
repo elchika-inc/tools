@@ -236,7 +236,7 @@ export default function App() {
                 <CardContent className="space-y-4">
                   <textarea
                     readOnly
-                    className="flex min-h-[200px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[200px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder="Recognized text will appear here..."
                     value={result}
                     aria-label="認識されたテキスト結果"
