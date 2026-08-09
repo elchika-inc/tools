@@ -139,7 +139,7 @@ export default function App() {
 
   return <ToastToaster>
   <div className="min-h-screen bg-background p-8">
-        <main className="max-w-2xl mx-auto space-y-6">
+        <main className="max-w-5xl mx-auto space-y-6">
           <header className="space-y-2">
             <div className="mb-2">
               <a href="/" className="text-sm text-primary hover:underline">

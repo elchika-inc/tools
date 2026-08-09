@@ -59,7 +59,7 @@ export default function App() {
 
   return <ToastToaster>
   <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-6">
           <header>
             <div className="mb-2">
               <a href="/" className="text-sm text-primary hover:underline">

@@ -154,7 +154,7 @@ export default function App() {
   if (view === 'decks') {
     return <ToastToaster>
     <div className="min-h-screen bg-background p-8">
-            <main className="max-w-3xl mx-auto space-y-6">
+            <main className="max-w-5xl mx-auto space-y-6">
               <header className="space-y-2">
                 <div className="mb-2">
                   <a href="/" className="text-sm text-primary hover:underline">
@@ -262,7 +262,7 @@ export default function App() {
   if (view === 'cards' && selectedDeck) {
     return <ToastToaster>
     <div className="min-h-screen bg-background p-8">
-            <main className="max-w-3xl mx-auto space-y-6">
+            <main className="max-w-5xl mx-auto space-y-6">
               <div className="flex items-center gap-3">
                 <Button type="button" variant="ghost" onClick={() => setView('decks')}>
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back
@@ -356,7 +356,7 @@ export default function App() {
   if (view === 'study' && studyCards.length > 0) {
     return <ToastToaster>
     <div className="min-h-screen bg-background p-8">
-            <main className="max-w-2xl mx-auto space-y-6">
+            <main className="max-w-5xl mx-auto space-y-6">
               <div className="flex items-center gap-3">
                 <Button type="button" variant="ghost" onClick={() => setView('cards')}>
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back

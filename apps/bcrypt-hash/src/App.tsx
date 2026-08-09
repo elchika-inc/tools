@@ -44,7 +44,7 @@ function App() {
 
   return <ToastToaster>
   <div className="min-h-screen bg-gray-50 p-4">
-        <div className="mx-auto max-w-2xl space-y-4">
+        <div className="mx-auto max-w-5xl space-y-4">
           <header className="sr-only">
             <div className="mb-2">
               <a href="/" className="text-sm text-primary hover:underline">
