@@ -4,9 +4,9 @@ BIP39ニーモニックフレーズ生成。
 
 ## アーキテクチャ
 
-- SPA: React 18 + TypeScript + Vite 6
-- UI: Tailwind CSS 3.4 + shadcn/ui (Radix UI)
-- デプロイ: Cloudflare Pages
+- SPA: React 19 + TypeScript + Vite+ (Vite 8 + Rolldown)
+- UI: Tailwind CSS v4 + elchika-inc/ui (Base UI)
+- デプロイ: Cloudflare Workers + Static Assets
 - 完全クライアントサイド処理(サーバー通信なし)
 
 ## 主要ファイル
@@ -18,10 +18,10 @@ BIP39ニーモニックフレーズ生成。
 ## コマンド
 
 ```bash
-bun run dev      # 開発サーバー
-bun run build    # ビルド
-bun test         # テスト
-bun run deploy   # デプロイ
+vp dev      # 開発サーバー
+vp build    # ビルド
+vp test         # テスト
+bash scripts/build-all.sh   # デプロイ
 ```
 
 ## 規約
@@ -29,5 +29,5 @@ bun run deploy   # デプロイ
 - パスエイリアス: `@/` = `src/`, `@components/`, `@utils/`, `@types/`, `@config/`, `@hooks/`, `@services/`
 - ボタンには必ず `type="button"` を付与
 - 非同期クリップボード操作は try/catch で囲む
-- linter: Biome (`bun run lint`)
-- テスト: bun test (`src/utils/__tests__/`)
+- linter/formatter: Oxlint + Oxfmt (vp check) (`vp check`)
+- テスト: vp test (`src/utils/__tests__/`)
