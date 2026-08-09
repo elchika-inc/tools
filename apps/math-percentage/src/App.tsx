@@ -159,7 +159,7 @@ export default function App() {
             </CalcRow>
           </main>
         </div>
-        
+
       </div>
   </ToastToaster>;
 }

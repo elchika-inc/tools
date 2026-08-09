@@ -157,7 +157,7 @@ export function transformToastCalls(source) {
   if (wrapped) imports.add("ToastToaster");
   ensureToastImport(sourceFile, imports);
 
-  return sourceFile.getFullText();
+  return sourceFile.getFullText().replace(/[ \t]+$/gm, "");
 }
 
 function referenceDependencyVersions() {

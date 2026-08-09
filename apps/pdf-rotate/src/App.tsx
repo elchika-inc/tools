@@ -262,7 +262,7 @@ export default function App() {
           </Card>
         </main>
         </div>
-        
+
       </div>
   </ToastToaster>;
 }

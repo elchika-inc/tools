@@ -208,7 +208,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3O
             </CardContent>
           </Card>
         </main>
-        
+
       </div>
   </ToastToaster>;
 }

@@ -317,7 +317,7 @@ export default function App() {
             </CardContent>
           </Card>
         </main>
-        
+
       </div>
   </ToastToaster>;
 }

@@ -68,6 +68,12 @@ describe("transformToastCalls", () => {
     expect(out).toMatch(/<ToastToaster>\s*<div>/);
     expect(out).not.toContain("<Toaster />");
   });
+
+  it("Toaster を除去した行に末尾空白を残さない", () => {
+    const src = `import { Toaster } from "@/components/ui/toaster";\nfunction App() {\n  return (\n    <div>\n      <main />\n      <Toaster />\n    </div>\n  );\n}`;
+    const out = transformToastCalls(src);
+    expect(out).not.toMatch(/[ \t]+$/m);
+  });
 });
 
 describe("migrateButtonTest", () => {

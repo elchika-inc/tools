@@ -227,7 +227,7 @@ Server IP: 192.168.1.100`;
             </div>
           </div>
         </main>
-        
+
       </div>
   </ToastToaster>;
 }

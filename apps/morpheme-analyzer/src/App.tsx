@@ -83,7 +83,7 @@ export default function App() {
                 </Button>
               </CardContent>
             </Card>
-            
+
           </div>
     </ToastToaster>;
   }
@@ -264,7 +264,7 @@ export default function App() {
           )}
           </main>
         </div>
-        
+
       </div>
   </ToastToaster>;
 }

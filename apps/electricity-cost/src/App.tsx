@@ -101,7 +101,7 @@ export default function App() {
             </Card>
           )}
         </div>
-        
+
       </div>
   </ToastToaster>;
 }

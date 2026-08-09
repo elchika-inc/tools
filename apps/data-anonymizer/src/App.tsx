@@ -273,7 +273,7 @@ Postal Code: 150-0001`;
             </CardContent>
           </Card>
         </main>
-        
+
       </div>
   </ToastToaster>;
 }

@@ -268,7 +268,7 @@ export default function App() {
 
           <canvas ref={canvasRef} className="hidden" />
         </main>
-        
+
       </div>
   </ToastToaster>;
 }
