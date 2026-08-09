@@ -29,6 +29,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">Affine Cipher</h1>
             <p className="text-muted-foreground">
               アフィン暗号(E(x) = (ax + b) mod 26)のエンコード/デコードを行います。
@@ -84,7 +89,7 @@ export default function App() {
                   </div>
                 </div>
                 {!isValidA(a) && (
-                  <div role="alert" className="text-sm text-red-500">a must be coprime with 26</div>
+                  <div role="alert" className="text-sm text-destructive">a must be coprime with 26</div>
                 )}
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">

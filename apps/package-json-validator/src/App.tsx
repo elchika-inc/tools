@@ -7,14 +7,14 @@ import { validate, type ValidationIssue } from '@/utils/packageJsonValidator';
 import { toast, ToastToaster } from "@/components/ui/toast";
 
 const severityIcon = {
-  error: <AlertCircle className="h-4 w-4 text-red-500" />,
-  warning: <AlertTriangle className="h-4 w-4 text-yellow-500" />,
+  error: <AlertCircle className="h-4 w-4 text-destructive" />,
+  warning: <AlertTriangle className="h-4 w-4 text-warning-foreground" />,
   info: <Info className="h-4 w-4 text-blue-500" />,
 };
 
 const severityStyle = {
-  error: 'border-red-200 bg-red-50',
-  warning: 'border-yellow-200 bg-yellow-50',
+  error: 'border-destructive bg-destructive-subtle',
+  warning: 'border-warning bg-warning',
   info: 'border-blue-200 bg-blue-50',
 };
 
@@ -84,6 +84,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <main className="max-w-6xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">package.json Validator</h1>
             <p className="text-muted-foreground">
               Validate package.json files for correct format, required fields, and best practices.
@@ -132,11 +137,11 @@ export default function App() {
                 <CardTitle className="flex items-center gap-2">
                   {errorCount === 0 ? (
                     <>
-                      <CheckCircle2 className="h-5 w-5 text-green-500" /> Validation Results
+                      <CheckCircle2 className="h-5 w-5 text-success-foreground" /> Validation Results
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="h-5 w-5 text-red-500" /> Validation Results
+                      <AlertCircle className="h-5 w-5 text-destructive" /> Validation Results
                     </>
                   )}
                 </CardTitle>

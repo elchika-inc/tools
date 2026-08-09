@@ -84,6 +84,11 @@ Server IP: 192.168.1.100`;
   <div className="min-h-screen bg-background p-8">
         <main className="max-w-5xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">Data Masking Tool</h1>
             <p className="text-muted-foreground">
               Mask PII (emails, phone numbers, credit cards, IPs) in text. Add custom regex patterns.

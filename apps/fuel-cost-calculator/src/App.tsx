@@ -25,10 +25,15 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Fuel Cost Calculator</h1>
+        <header>
+          <div className="mb-2">
+            <a href="/" className="text-sm text-primary hover:underline">
+              ← Tools トップに戻る
+            </a>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Fuel Cost Calculator</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">燃費・ガソリン代・CO2排出量計算</p>
-        </div>
+        </header>
 
         <Card>
           <CardContent className="pt-6 space-y-4">

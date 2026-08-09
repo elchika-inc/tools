@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -81,10 +81,15 @@ export default function App() {
         <main className="mx-auto max-w-3xl space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>CSP Builder</CardTitle>
-              <CardDescription>
-                Build Content-Security-Policy headers visually
-              </CardDescription>
+              <header>
+                <div className="mb-2">
+                  <a href="/" className="text-sm text-primary hover:underline">
+                    ← Tools トップに戻る
+                  </a>
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight">CSP Builder</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Build Content-Security-Policy headers visually</p>
+              </header>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Add Directive */}

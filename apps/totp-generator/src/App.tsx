@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { generateTOTP, generateSecret, getRemainingSeconds, buildOtpAuthUri } from '@/utils/totp';
@@ -82,10 +82,15 @@ export default function App() {
         <main className="mx-auto max-w-2xl space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>TOTP Generator</CardTitle>
-              <CardDescription>
-                Generate Time-based One-Time Passwords (RFC 6238)
-              </CardDescription>
+              <header>
+                <div className="mb-2">
+                  <a href="/" className="text-sm text-primary hover:underline">
+                    ← Tools トップに戻る
+                  </a>
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight">TOTP Generator</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Generate Time-based One-Time Passwords (RFC 6238)</p>
+              </header>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Secret Input */}
@@ -113,7 +118,7 @@ export default function App() {
                     </Button>
                   </div>
                 )}
-                {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
+                {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
               </div>
 
               {/* TOTP Code Display */}

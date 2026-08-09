@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { evaluateStrength } from '@/utils/passwordStrength';
@@ -49,10 +49,15 @@ export default function App() {
         <main className="mx-auto max-w-2xl space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Password Strength Checker</CardTitle>
-              <CardDescription>
-                Analyze password strength with entropy calculation and crack time estimation
-              </CardDescription>
+              <header>
+                <div className="mb-2">
+                  <a href="/" className="text-sm text-primary hover:underline">
+                    ← Tools トップに戻る
+                  </a>
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight">Password Strength Checker</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Analyze password strength with entropy calculation and crack time estimation</p>
+              </header>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">

@@ -46,7 +46,12 @@ function App() {
   <div className="min-h-screen bg-gray-50 p-4">
         <div className="mx-auto max-w-2xl space-y-4">
           <header className="sr-only">
-            <h1>Bcrypt Hash Generator</h1>
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Bcrypt Hash Generator</h1>
           </header>
           <main>
             <Card>

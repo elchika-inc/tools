@@ -43,6 +43,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">JSON Formatter</h1>
             <p className="text-muted-foreground">JSONを整形またはミニファイします。</p>
           </header>
@@ -73,12 +78,12 @@ export default function App() {
                       {validation.valid ? (
                         <>
                           <CheckCircle className="h-4 w-4 text-green-500" aria-hidden="true" />
-                          <span className="text-green-600">Valid JSON</span>
+                          <span className="text-success-foreground">Valid JSON</span>
                         </>
                       ) : (
                         <>
                           <XCircle className="h-4 w-4 text-red-500" aria-hidden="true" />
-                          <span className="text-red-600">Invalid JSON</span>
+                          <span className="text-destructive">Invalid JSON</span>
                         </>
                       )}
                     </div>

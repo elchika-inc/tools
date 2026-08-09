@@ -94,6 +94,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-4 md:p-8">
         <main className="max-w-4xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">営業日計算ツール</h1>
             <p className="text-muted-foreground">
               期間内の営業日数を計算。日本の祝日(2024-2027)に対応。カスタム休日追加可能。

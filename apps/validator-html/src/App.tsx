@@ -14,6 +14,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">HTML Validator</h1>
             <p className="text-muted-foreground">HTMLの構文チェックを行います。</p>
           </header>
@@ -59,7 +64,7 @@ export default function App() {
                     return (
                       <div
                         key={key}
-                        className={`text-sm p-2 rounded ${issue.type === 'error' ? 'bg-red-50 dark:bg-red-950 text-red-700' : 'bg-yellow-50 dark:bg-yellow-950 text-yellow-700'}`}
+                        className={`text-sm p-2 rounded ${issue.type === 'error' ? 'bg-destructive-subtle dark:bg-destructive-subtle text-destructive' : 'bg-warning dark:bg-warning text-warning-foreground'}`}
                       >
                         {issue.line && <span className="font-mono mr-2">L{issue.line}</span>}
                         {issue.message}

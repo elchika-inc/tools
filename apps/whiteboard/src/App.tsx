@@ -187,7 +187,12 @@ export default function App() {
   <div className="min-h-screen bg-background p-4">
         <main className="max-w-7xl mx-auto space-y-4">
           <header className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">Whiteboard</h1>
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Whiteboard</h1>
             <p className="text-sm text-muted-foreground">
               Draw, sketch, and save your ideas. Touch supported.
             </p>

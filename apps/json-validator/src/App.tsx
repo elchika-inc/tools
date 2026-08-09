@@ -13,6 +13,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">JSON Validator</h1>
             <p className="text-muted-foreground">JSONの構文チェックを行います。</p>
           </header>
@@ -28,12 +33,12 @@ export default function App() {
                     {result.valid ? (
                       <>
                         <CheckCircle className="h-5 w-5 text-green-500" aria-hidden="true" />
-                        <span className="text-green-600 font-medium">Valid JSON</span>
+                        <span className="text-success-foreground font-medium">Valid JSON</span>
                       </>
                     ) : result.error ? (
                       <>
                         <XCircle className="h-5 w-5 text-red-500" aria-hidden="true" />
-                        <span className="text-red-600">{result.error}</span>
+                        <span className="text-destructive">{result.error}</span>
                         {result.errorLine && (
                           <span className="text-muted-foreground">
                             (line {result.errorLine}, col {result.errorColumn})

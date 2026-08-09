@@ -12,6 +12,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">JSON to Table</h1>
             <p className="text-muted-foreground">JSONデータをテーブル形式で表示します。</p>
           </header>
@@ -35,7 +40,7 @@ export default function App() {
             </Card>
 
             {result.error && (
-              <div role="alert" className="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded p-2">
+              <div role="alert" className="text-sm text-destructive bg-destructive-subtle dark:bg-destructive-subtle rounded p-2">
                 {result.error}
               </div>
             )}

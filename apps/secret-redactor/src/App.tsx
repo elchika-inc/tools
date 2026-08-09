@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { detect, redact } from '@/utils/secretRedactor';
 import type { DetectedSecret } from '@/utils/secretRedactor';
@@ -79,10 +79,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3O
         <main className="mx-auto max-w-3xl space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Secret Redactor</CardTitle>
-              <CardDescription>
-                Detect and mask secrets, API keys, tokens, and passwords in text
-              </CardDescription>
+              <header>
+                <div className="mb-2">
+                  <a href="/" className="text-sm text-primary hover:underline">
+                    ← Tools トップに戻る
+                  </a>
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight">Secret Redactor</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Detect and mask secrets, API keys, tokens, and passwords in text</p>
+              </header>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Input */}

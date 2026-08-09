@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -93,10 +93,15 @@ export default function App() {
         <main className="mx-auto max-w-2xl space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>SRI Hash Generator</CardTitle>
-              <CardDescription>
-                Generate Subresource Integrity hashes for script and stylesheet tags
-              </CardDescription>
+              <header>
+                <div className="mb-2">
+                  <a href="/" className="text-sm text-primary hover:underline">
+                    ← Tools トップに戻る
+                  </a>
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight">SRI Hash Generator</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Generate Subresource Integrity hashes for script and stylesheet tags</p>
+              </header>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Algorithm Selector */}

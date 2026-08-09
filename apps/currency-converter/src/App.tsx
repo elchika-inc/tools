@@ -77,6 +77,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-4 md:p-8">
         <main className="max-w-3xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">通貨換算ツール</h1>
             <p className="text-muted-foreground">
               主要通貨間の換算。手動でレートを設定可能(API不要)。

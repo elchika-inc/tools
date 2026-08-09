@@ -31,6 +31,11 @@ export default function App() {
         <div className="max-w-4xl mx-auto space-y-6">
           <header className="space-y-2">
             <div className="flex items-center gap-3">
+              <div className="mb-2">
+                <a href="/" className="text-sm text-primary hover:underline">
+                  ← Tools トップに戻る
+                </a>
+              </div>
               <Terminal className="h-8 w-8" aria-hidden="true" />
               <h1 className="text-3xl font-bold tracking-tight">Git Cheatsheet</h1>
             </div>

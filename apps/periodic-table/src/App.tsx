@@ -55,6 +55,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-4 md:p-8">
         <main className="max-w-[1200px] mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">Periodic Table</h1>
             <p className="text-muted-foreground">
               Interactive periodic table of 118 elements. Click any element for details.

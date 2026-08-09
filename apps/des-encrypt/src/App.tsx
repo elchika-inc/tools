@@ -49,7 +49,12 @@ function App() {
   <div className="min-h-screen bg-gray-50 p-4">
         <div className="mx-auto max-w-2xl">
           <header className="sr-only">
-            <h1>DES Encrypt / Decrypt</h1>
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">DES Encrypt / Decrypt</h1>
           </header>
           <main>
             <Card>
@@ -131,7 +136,7 @@ function App() {
                   {mode === "encrypt" ? "Encrypt" : "Decrypt"}
                 </Button>
                 {error && (
-                  <div role="alert" className="rounded-md bg-red-100 p-3 text-sm text-red-800">{error}</div>
+                  <div role="alert" className="rounded-md bg-destructive-subtle p-3 text-sm text-destructive">{error}</div>
                 )}
                 {output && (
                   <div className="space-y-2">

@@ -113,7 +113,15 @@ export default function App() {
         {/* Sidebar */}
         <nav aria-label="Notes navigation" className="w-64 border-r bg-muted/30 flex flex-col h-screen">
           <div className="p-4 border-b space-y-3">
-            <h1 className="text-lg font-bold tracking-tight">Note Pad</h1>
+            <header>
+              <div className="mb-2">
+                <a href="/" className="text-sm text-primary hover:underline">
+                  ← Tools トップに戻る
+                </a>
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight">Note Pad</h1>
+              <p className="mt-2 text-sm text-muted-foreground">ブラウザ内でノートを作成・編集・保存します。</p>
+            </header>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input

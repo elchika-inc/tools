@@ -67,6 +67,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <main className="max-w-4xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">DNS Lookup</h1>
             <p className="text-muted-foreground">
               DNSレコードを検索します。DNS-over-HTTPS (Google DNS) を使用してブラウザから直接検索できます。
@@ -158,7 +163,7 @@ export default function App() {
               </CardHeader>
               <CardContent>
                 {result.error && (
-                  <div className="p-3 mb-4 bg-red-50 border border-red-200 rounded-md text-sm text-red-800" role="alert">
+                  <div className="p-3 mb-4 bg-destructive-subtle border border-destructive rounded-md text-sm text-destructive" role="alert">
                     {result.error}
                   </div>
                 )}

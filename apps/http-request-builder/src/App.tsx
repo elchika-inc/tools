@@ -99,10 +99,10 @@ export default function App() {
   };
 
   const getStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return 'text-green-600 bg-green-50';
+    if (status >= 200 && status < 300) return 'text-success-foreground bg-success';
     if (status >= 300 && status < 400) return 'text-blue-600 bg-blue-50';
-    if (status >= 400 && status < 500) return 'text-orange-600 bg-orange-50';
-    if (status >= 500) return 'text-red-600 bg-red-50';
+    if (status >= 400 && status < 500) return 'text-warning-foreground bg-warning';
+    if (status >= 500) return 'text-destructive bg-destructive-subtle';
     return 'text-gray-600 bg-gray-50';
   };
 
@@ -116,6 +116,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <main className="max-w-5xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">HTTP Request Builder</h1>
             <p className="text-muted-foreground">
               REST APIリクエストを構築して送信し、レスポンスを確認できます。

@@ -13,6 +13,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">XML Validator</h1>
             <p className="text-muted-foreground">XMLの構文チェックを行います。</p>
           </header>
@@ -28,12 +33,12 @@ export default function App() {
                   {result.valid ? (
                     <>
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-green-600">Valid XML</span>
+                      <span className="text-success-foreground">Valid XML</span>
                     </>
                   ) : result.error ? (
                     <>
                       <XCircle className="h-4 w-4 text-red-500" />
-                      <span className="text-red-600">Invalid XML</span>
+                      <span className="text-destructive">Invalid XML</span>
                     </>
                   ) : null}
                 </div>
@@ -52,7 +57,7 @@ export default function App() {
                 <div className="space-y-2">
                   <Label>Result</Label>
                   {result.error ? (
-                    <div role="alert" className="min-h-[350px] rounded-md border border-red-200 bg-red-50 dark:bg-red-950 p-3 text-sm text-red-700 font-mono whitespace-pre-wrap">
+                    <div role="alert" className="min-h-[350px] rounded-md border border-destructive bg-destructive-subtle dark:bg-destructive-subtle p-3 text-sm text-destructive font-mono whitespace-pre-wrap">
                       {result.error}
                     </div>
                   ) : (

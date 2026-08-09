@@ -71,6 +71,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <main className="max-w-4xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">Text to Speech</h1>
             <p className="text-muted-foreground">
               Read text aloud using the Web Speech API. Adjust voice, speed, and pitch.
@@ -174,7 +179,7 @@ export default function App() {
               {status !== 'idle' && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span
-                    className={`h-2 w-2 rounded-full ${status === 'speaking' ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}
+                    className={`h-2 w-2 rounded-full ${status === 'speaking' ? 'bg-success animate-pulse' : 'bg-warning'}`}
                   />
                   {status === 'speaking' ? 'Speaking...' : 'Paused'}
                 </div>

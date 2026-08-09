@@ -37,6 +37,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <main className="max-w-4xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">CORS Checker</h1>
             <p className="text-muted-foreground">
               URLのCORSヘッダー設定状況を確認します。プリフライトリクエストの結果を表示します。
@@ -87,7 +92,7 @@ export default function App() {
                 </CardHeader>
                 {result.error && (
                   <CardContent>
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800" role="alert">
+                    <div className="p-3 bg-destructive-subtle border border-destructive rounded-md text-sm text-destructive" role="alert">
                       {result.error}
                     </div>
                   </CardContent>

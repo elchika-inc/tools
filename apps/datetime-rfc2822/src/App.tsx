@@ -26,6 +26,11 @@ export default function App() {
   <div className="min-h-screen bg-background p-8">
         <div className="max-w-4xl mx-auto space-y-6">
           <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">RFC 2822 Date Converter</h1>
             <p className="text-muted-foreground">RFC 2822形式の日時変換を行います。</p>
           </header>
@@ -68,7 +73,7 @@ export default function App() {
                   Now
                 </Button>
                 {!date && input.trim() && (
-                  <div className="text-sm text-red-500" role="alert">
+                  <div className="text-sm text-destructive" role="alert">
                     Invalid date
                   </div>
                 )}
