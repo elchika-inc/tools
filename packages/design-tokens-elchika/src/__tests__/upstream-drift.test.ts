@@ -15,9 +15,9 @@ const FILE_MAP: Record<string, string> = {
   "src/styles/design-system/brands.css": "design-system/brands.css",
 };
 
-// 意図的な局所編集(フォント import の CDN → fontsource 置換)だけを比較から除外する
-const isFontImport = (line: string): boolean =>
-  line.includes("fonts.googleapis.com") || line.includes("@fontsource/");
+// 意図的な局所編集(upstream の Google Fonts CDN import を削除し、共有配信 /fonts/fonts.css を
+// index.html の <link> で読む方式へ変更)だけを比較から除外する
+const isFontImport = (line: string): boolean => line.includes("fonts.googleapis.com");
 
 const normalize = (body: string): string =>
   body
