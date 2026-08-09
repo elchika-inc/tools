@@ -7566,12 +7566,12 @@ importers:
 
   apps/home:
     dependencies:
-      '@radix-ui/react-slot':
-        specifier: ^1.2.4
-        version: 1.2.4(@types/react@19.2.14)(react@19.2.4)
-      '@tools/design-tokens':
+      '@base-ui/react':
+        specifier: ^1.7.0
+        version: 1.7.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@tools/design-tokens-elchika':
         specifier: workspace:*
-        version: link:../../packages/design-tokens
+        version: link:../../packages/design-tokens-elchika
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -7590,6 +7590,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.5.0
+      tw-animate-css:
+        specifier: ^1.4.0
+        version: 1.4.0
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.3.3
@@ -27145,7 +27148,7 @@ snapshots:
       prompts: 2.4.2
       recast: 0.23.11
       stringify-object: 5.0.0
-      tailwind-merge: 3.5.0
+      tailwind-merge: 3.6.0
       ts-morph: 26.0.0
       tsconfig-paths: 4.2.0
       undici: 7.29.0
