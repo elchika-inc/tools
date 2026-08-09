@@ -10,8 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/useToast';
 import {
   type AudioTrack,
   type MergeOptions,
@@ -27,6 +25,7 @@ import {
   encodeWav,
   downloadBlob,
 } from '@/utils/audioMerge';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const SAMPLE_RATES = [22050, 44100, 48000];
 
@@ -57,17 +56,17 @@ export default function App() {
           buffer,
         });
       } catch {
-        toast({
+        toast.add({
           title: 'Error',
           description: `Failed to load: ${file.name}`,
-          variant: 'destructive',
+          type: "error",
         });
       }
     }
 
     if (newTracks.length > 0) {
       setTracks((prev) => [...prev, ...newTracks]);
-      toast({
+      toast.add({
         title: 'Files loaded',
         description: `${newTracks.length} file(s) added`,
       });
@@ -88,10 +87,10 @@ export default function App() {
 
   const handleMerge = useCallback(async () => {
     if (tracks.length < 2) {
-      toast({
+      toast.add({
         title: 'Error',
         description: 'At least 2 tracks are required to merge.',
-        variant: 'destructive',
+        type: "error",
       });
       return;
     }
@@ -109,13 +108,13 @@ export default function App() {
       setResultBlob(blob);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      toast({
+      toast.add({
         title: 'Merge complete',
         description: `Output: ${formatFileSize(blob.size)}`,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Merge failed';
-      toast({ title: 'Error', description: message, variant: 'destructive' });
+      toast.add({ title: 'Error', description: message, type: "error" });
     } finally {
       setMerging(false);
     }
@@ -138,189 +137,189 @@ export default function App() {
 
   const totalDuration = calculateTotalDuration(tracks, options);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-2xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Audio Merge</h1>
-          <p className="text-muted-foreground">
-            複数のオーディオファイルを結合します
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-2xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Audio Merge</h1>
+            <p className="text-muted-foreground">
+              複数のオーディオファイルを結合します
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>ファイル追加</CardTitle>
-            <CardDescription>結合するオーディオファイルを選択してください</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Input
-              ref={fileInputRef}
-              type="file"
-              accept="audio/*"
-              multiple
-              onChange={handleFilesChange}
-            />
-          </CardContent>
-        </Card>
-
-        {tracks.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>トラック一覧 ({tracks.length})</CardTitle>
-              <CardDescription>
-                合計: {formatDuration(totalDuration)}
-              </CardDescription>
+              <CardTitle>ファイル追加</CardTitle>
+              <CardDescription>結合するオーディオファイルを選択してください</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {tracks.map((track, index) => (
-                <div
-                  key={track.id}
-                  className="flex items-center gap-2 p-3 rounded-md border bg-muted/50"
-                >
-                  <span className="text-sm font-mono text-muted-foreground w-6 text-center">
-                    {index + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{track.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDuration(track.duration)} / {track.sampleRate}Hz / {track.channels}ch
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleMove(index, 'up')}
-                      disabled={index === 0}
-                    >
-                      ↑
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleMove(index, 'down')}
-                      disabled={index === tracks.length - 1}
-                    >
-                      ↓
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemove(index)}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                </div>
-              ))}
+            <CardContent>
+              <Input
+                ref={fileInputRef}
+                type="file"
+                accept="audio/*"
+                multiple
+                onChange={handleFilesChange}
+              />
             </CardContent>
           </Card>
-        )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>結合設定</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>ギャップ (秒)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={options.gapSeconds}
-                  onChange={(e) =>
-                    setOptions((prev) => ({
-                      ...prev,
-                      gapSeconds: Math.max(0, parseFloat(e.target.value) || 0),
-                      crossfadeSeconds: 0,
-                    }))
-                  }
-                  disabled={options.crossfadeSeconds > 0}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>クロスフェード (秒)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="5"
-                  step="0.1"
-                  value={options.crossfadeSeconds}
-                  onChange={(e) =>
-                    setOptions((prev) => ({
-                      ...prev,
-                      crossfadeSeconds: Math.max(0, parseFloat(e.target.value) || 0),
-                      gapSeconds: 0,
-                    }))
-                  }
-                  disabled={options.gapSeconds > 0}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label>出力サンプルレート</Label>
-              <Select
-                value={String(options.outputSampleRate)}
-                onValueChange={(v) =>
-                  setOptions((prev) => ({ ...prev, outputSampleRate: Number(v) }))
-                }
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SAMPLE_RATES.map((rate) => (
-                    <SelectItem key={rate} value={String(rate)}>
-                      {rate} Hz
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+          {tracks.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>トラック一覧 ({tracks.length})</CardTitle>
+                <CardDescription>
+                  合計: {formatDuration(totalDuration)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {tracks.map((track, index) => (
+                  <div
+                    key={track.id}
+                    className="flex items-center gap-2 p-3 rounded-md border bg-muted/50"
+                  >
+                    <span className="text-sm font-mono text-muted-foreground w-6 text-center">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{track.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDuration(track.duration)} / {track.sampleRate}Hz / {track.channels}ch
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMove(index, 'up')}
+                        disabled={index === 0}
+                      >
+                        ↑
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMove(index, 'down')}
+                        disabled={index === tracks.length - 1}
+                      >
+                        ↓
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemove(index)}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            onClick={handleMerge}
-            disabled={tracks.length < 2 || merging}
-            className="flex-1"
-          >
-            {merging ? '結合中...' : '結合'}
-          </Button>
-          <Button type="button" variant="outline" onClick={handleClear}>
-            クリア
-          </Button>
-        </div>
-
-        {resultUrl && resultBlob && (
           <Card>
             <CardHeader>
-              <CardTitle>結合結果</CardTitle>
+              <CardTitle>結合設定</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                <p>出力サイズ: {formatFileSize(resultBlob.size)}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>ギャップ (秒)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    value={options.gapSeconds}
+                    onChange={(e) =>
+                      setOptions((prev) => ({
+                        ...prev,
+                        gapSeconds: Math.max(0, parseFloat(e.target.value) || 0),
+                        crossfadeSeconds: 0,
+                      }))
+                    }
+                    disabled={options.crossfadeSeconds > 0}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>クロスフェード (秒)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={options.crossfadeSeconds}
+                    onChange={(e) =>
+                      setOptions((prev) => ({
+                        ...prev,
+                        crossfadeSeconds: Math.max(0, parseFloat(e.target.value) || 0),
+                        gapSeconds: 0,
+                      }))
+                    }
+                    disabled={options.gapSeconds > 0}
+                    className="mt-1"
+                  />
+                </div>
               </div>
-              <audio controls src={resultUrl} className="w-full" />
-              <Button type="button" onClick={handleDownload} className="w-full">
-                ダウンロード
-              </Button>
+              <div>
+                <Label>出力サンプルレート</Label>
+                <Select
+                  value={String(options.outputSampleRate)}
+                  onValueChange={(v) =>
+                    setOptions((prev) => ({ ...prev, outputSampleRate: Number(v) }))
+                  }
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SAMPLE_RATES.map((rate) => (
+                      <SelectItem key={rate} value={String(rate)}>
+                        {rate} Hz
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              onClick={handleMerge}
+              disabled={tracks.length < 2 || merging}
+              className="flex-1"
+            >
+              {merging ? '結合中...' : '結合'}
+            </Button>
+            <Button type="button" variant="outline" onClick={handleClear}>
+              クリア
+            </Button>
+          </div>
+
+          {resultUrl && resultBlob && (
+            <Card>
+              <CardHeader>
+                <CardTitle>結合結果</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  <p>出力サイズ: {formatFileSize(resultBlob.size)}</p>
+                </div>
+                <audio controls src={resultUrl} className="w-full" />
+                <Button type="button" onClick={handleDownload} className="w-full">
+                  ダウンロード
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

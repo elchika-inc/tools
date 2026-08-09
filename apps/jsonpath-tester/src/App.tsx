@@ -3,9 +3,8 @@ import { Button } from './components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
-import { Toaster } from './components/ui/toaster';
-import { useToast } from './hooks/useToast';
 import { queryJsonPath } from './utils/jsonpath';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const SAMPLE = JSON.stringify(
   {
@@ -24,8 +23,6 @@ const SAMPLE = JSON.stringify(
 function App() {
   const [json, setJson] = useState(SAMPLE);
   const [path, setPath] = useState('$.store.books[0].title');
-  const { toast } = useToast();
-
   const result = useMemo(() => {
     try {
       const data = JSON.parse(json);
@@ -42,82 +39,82 @@ function App() {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(result.value);
-      toast({ title: 'Copied!' });
+      toast.add({ title: 'Copied!' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="mx-auto max-w-3xl">
-        <header className="sr-only">
-          <h1>JSONPath Tester</h1>
-        </header>
-        <main>
-          <Card>
-            <CardHeader>
-              <CardTitle>JSONPath Tester</CardTitle>
-              <CardDescription>Test JSONPath expressions against JSON data</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="path">JSONPath Expression</Label>
-                <Input
-                  id="path"
-                  value={path}
-                  onChange={(e) => setPath(e.target.value)}
-                  placeholder="$.store.books[0].title"
-                  className="font-mono"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+  return <ToastToaster>
+  <div className="min-h-screen bg-gray-50 p-4">
+        <div className="mx-auto max-w-3xl">
+          <header className="sr-only">
+            <h1>JSONPath Tester</h1>
+          </header>
+          <main>
+            <Card>
+              <CardHeader>
+                <CardTitle>JSONPath Tester</CardTitle>
+                <CardDescription>Test JSONPath expressions against JSON data</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="json">JSON Input</Label>
-                  <textarea
-                    id="json"
-                    className="w-full rounded-md border p-3 font-mono text-sm"
-                    rows={15}
-                    value={json}
-                    onChange={(e) => setJson(e.target.value)}
-                    spellCheck={false}
+                  <Label htmlFor="path">JSONPath Expression</Label>
+                  <Input
+                    id="path"
+                    value={path}
+                    onChange={(e) => setPath(e.target.value)}
+                    placeholder="$.store.books[0].title"
+                    className="font-mono"
                   />
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Result</Label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopy}
-                      disabled={!result.value}
-                      type="button"
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                  {result.error ? (
-                    <div role="alert" className="rounded-md bg-red-100 p-3 text-sm text-red-800">
-                      {result.error}
-                    </div>
-                  ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="json">JSON Input</Label>
                     <textarea
-                      aria-label="JSONPath query result"
-                      className="w-full rounded-md border bg-gray-50 p-3 font-mono text-sm"
+                      id="json"
+                      className="w-full rounded-md border p-3 font-mono text-sm"
                       rows={15}
-                      value={result.value}
-                      readOnly
+                      value={json}
+                      onChange={(e) => setJson(e.target.value)}
+                      spellCheck={false}
                     />
-                  )}
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Result</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopy}
+                        disabled={!result.value}
+                        type="button"
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                    {result.error ? (
+                      <div role="alert" className="rounded-md bg-red-100 p-3 text-sm text-red-800">
+                        {result.error}
+                      </div>
+                    ) : (
+                      <textarea
+                        aria-label="JSONPath query result"
+                        className="w-full rounded-md border bg-gray-50 p-3 font-mono text-sm"
+                        rows={15}
+                        value={result.value}
+                        readOnly
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </main>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+        
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }
 
 export default App;

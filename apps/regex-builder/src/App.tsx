@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Copy, Plus, X, Trash2 } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   BLOCK_PRESETS,
   buildFlagsString,
@@ -17,6 +15,7 @@ import {
   type RegexBlock,
   type RegexFlags,
 } from '@/utils/regexBuilder';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const BLOCK_TYPE_COLORS: Record<BlockType, string> = {
   'literal': 'bg-blue-100 border-blue-300 text-blue-800',
@@ -83,8 +82,6 @@ export default function App() {
     dotAll: false,
   });
   const [literalInput, setLiteralInput] = useState('');
-  const { toast } = useToast();
-
   const patternFromBlocks = buildRegexString(blocks);
   const pattern = useManual ? manualPattern : patternFromBlocks;
   const flagsStr = buildFlagsString(flags);
@@ -114,238 +111,238 @@ export default function App() {
     try {
       const full = `/${pattern}/${flagsStr}`;
       await navigator.clipboard.writeText(full);
-      toast({ title: 'Regex copied to clipboard' });
+      toast.add({ title: 'Regex copied to clipboard' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-5xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Regex Builder</h1>
-          <p className="text-muted-foreground">
-            Build regular expressions visually or manually, and test against sample text.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-5xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Regex Builder</h1>
+            <p className="text-muted-foreground">
+              Build regular expressions visually or manually, and test against sample text.
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Build Regex</CardTitle>
-            <CardDescription>Add blocks to construct your regular expression.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="radio"
-                  checked={!useManual}
-                  onChange={() => setUseManual(false)}
-                />
-                Visual Builder
-              </label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="radio"
-                  checked={useManual}
-                  onChange={() => setUseManual(true)}
-                />
-                Manual Input
-              </label>
-            </div>
-
-            {useManual ? (
-              <div className="space-y-2">
-                <Label>Regex Pattern</Label>
-                <Input
-                  value={manualPattern}
-                  onChange={(e) => setManualPattern(e.target.value)}
-                  placeholder="Enter regex pattern..."
-                  className="font-mono"
-                />
+          <Card>
+            <CardHeader>
+              <CardTitle>Build Regex</CardTitle>
+              <CardDescription>Add blocks to construct your regular expression.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={!useManual}
+                    onChange={() => setUseManual(false)}
+                  />
+                  Visual Builder
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={useManual}
+                    onChange={() => setUseManual(true)}
+                  />
+                  Manual Input
+                </label>
               </div>
-            ) : (
-              <>
-                {/* Block palette */}
-                <div className="space-y-3">
-                  {(Object.keys(BLOCK_PRESETS) as BlockType[]).map((type) => (
-                    <div key={type} className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground uppercase">
-                        {BLOCK_TYPE_LABELS[type]}
-                      </p>
+
+              {useManual ? (
+                <div className="space-y-2">
+                  <Label>Regex Pattern</Label>
+                  <Input
+                    value={manualPattern}
+                    onChange={(e) => setManualPattern(e.target.value)}
+                    placeholder="Enter regex pattern..."
+                    className="font-mono"
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Block palette */}
+                  <div className="space-y-3">
+                    {(Object.keys(BLOCK_PRESETS) as BlockType[]).map((type) => (
+                      <div key={type} className="space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground uppercase">
+                          {BLOCK_TYPE_LABELS[type]}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {type === 'literal' && (
+                            <div className="flex gap-1">
+                              <Input
+                                value={literalInput}
+                                onChange={(e) => setLiteralInput(e.target.value)}
+                                placeholder="Text..."
+                                className="h-8 w-32 text-xs"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') addPresetBlock('literal', '', literalInput);
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="h-8"
+                                onClick={() => addPresetBlock('literal', '', literalInput)}
+                                disabled={!literalInput.trim()}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {type !== 'literal' &&
+                            BLOCK_PRESETS[type].map((preset) => (
+                              <Button
+                                type="button"
+                                key={preset.value}
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs"
+                                onClick={() => addPresetBlock(type, preset.value, preset.label)}
+                              >
+                                {preset.label}
+                              </Button>
+                            ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Active blocks */}
+                  {blocks.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Active Blocks</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setBlocks([])}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" /> Clear All
+                        </Button>
+                      </div>
                       <div className="flex flex-wrap gap-1">
-                        {type === 'literal' && (
-                          <div className="flex gap-1">
-                            <Input
-                              value={literalInput}
-                              onChange={(e) => setLiteralInput(e.target.value)}
-                              placeholder="Text..."
-                              className="h-8 w-32 text-xs"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') addPresetBlock('literal', '', literalInput);
-                              }}
-                            />
-                            <Button
+                        {blocks.map((block) => (
+                          <span
+                            key={block.id}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-medium ${BLOCK_TYPE_COLORS[block.type]}`}
+                          >
+                            <span className="font-mono">{block.value}</span>
+                            <button
                               type="button"
-                              size="sm"
-                              variant="outline"
-                              className="h-8"
-                              onClick={() => addPresetBlock('literal', '', literalInput)}
-                              disabled={!literalInput.trim()}
+                              onClick={() => removeBlock(block.id)}
+                              className="ml-1 hover:opacity-70"
                             >
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )}
-                        {type !== 'literal' &&
-                          BLOCK_PRESETS[type].map((preset) => (
-                            <Button
-                              type="button"
-                              key={preset.value}
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs"
-                              onClick={() => addPresetBlock(type, preset.value, preset.label)}
-                            >
-                              {preset.label}
-                            </Button>
-                          ))}
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
                       </div>
                     </div>
+                  )}
+                </>
+              )}
+
+              {/* Flags */}
+              <div className="space-y-2">
+                <Label>Flags</Label>
+                <div className="flex flex-wrap gap-4">
+                  {([
+                    ['global', 'g - Global'],
+                    ['caseInsensitive', 'i - Case Insensitive'],
+                    ['multiline', 'm - Multiline'],
+                    ['dotAll', 's - DotAll'],
+                  ] as const).map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={flags[key]}
+                        onChange={(e) => setFlags({ ...flags, [key]: e.target.checked })}
+                      />
+                      {label}
+                    </label>
                   ))}
                 </div>
+              </div>
 
-                {/* Active blocks */}
-                {blocks.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Active Blocks</Label>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setBlocks([])}
-                      >
-                        <Trash2 className="h-3 w-3 mr-1" /> Clear All
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {blocks.map((block) => (
-                        <span
-                          key={block.id}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-medium ${BLOCK_TYPE_COLORS[block.type]}`}
-                        >
-                          <span className="font-mono">{block.value}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeBlock(block.id)}
-                            className="ml-1 hover:opacity-70"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+              {/* Generated regex */}
+              <div className="space-y-2">
+                <Label>Generated Regex</Label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 p-2 rounded-md bg-muted font-mono text-sm break-all">
+                    /{pattern}/{flagsStr}
+                  </code>
+                  <Button type="button" size="sm" onClick={copyRegex} disabled={!pattern} aria-label="Copy regex">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Test String</CardTitle>
+              <CardDescription>
+                Enter text to test matches. {matches.length} match(es) found.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <textarea
+                aria-label="Test string"
+                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-mono"
+                placeholder="Enter test string..."
+                value={testString}
+                onChange={(e) => setTestString(e.target.value)}
+              />
+
+              {testString && pattern && (
+                <div className="space-y-2">
+                  <Label>Highlighted Matches</Label>
+                  <div className="p-3 rounded-md border bg-background font-mono text-sm whitespace-pre-wrap break-all">
+                    <HighlightedText text={testString} matches={matches} />
                   </div>
-                )}
-              </>
-            )}
-
-            {/* Flags */}
-            <div className="space-y-2">
-              <Label>Flags</Label>
-              <div className="flex flex-wrap gap-4">
-                {([
-                  ['global', 'g - Global'],
-                  ['caseInsensitive', 'i - Case Insensitive'],
-                  ['multiline', 'm - Multiline'],
-                  ['dotAll', 's - DotAll'],
-                ] as const).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={flags[key]}
-                      onChange={(e) => setFlags({ ...flags, [key]: e.target.checked })}
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Generated regex */}
-            <div className="space-y-2">
-              <Label>Generated Regex</Label>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 p-2 rounded-md bg-muted font-mono text-sm break-all">
-                  /{pattern}/{flagsStr}
-                </code>
-                <Button type="button" size="sm" onClick={copyRegex} disabled={!pattern} aria-label="Copy regex">
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Test String</CardTitle>
-            <CardDescription>
-              Enter text to test matches. {matches.length} match(es) found.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <textarea
-              aria-label="Test string"
-              className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-mono"
-              placeholder="Enter test string..."
-              value={testString}
-              onChange={(e) => setTestString(e.target.value)}
-            />
-
-            {testString && pattern && (
-              <div className="space-y-2">
-                <Label>Highlighted Matches</Label>
-                <div className="p-3 rounded-md border bg-background font-mono text-sm whitespace-pre-wrap break-all">
-                  <HighlightedText text={testString} matches={matches} />
                 </div>
-              </div>
-            )}
+              )}
 
-            {matches.length > 0 && (
-              <div className="space-y-2">
-                <Label>Match Details</Label>
-                <div className="max-h-[200px] overflow-y-auto border rounded-md">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted sticky top-0">
-                      <tr>
-                        <th className="text-left p-2">#</th>
-                        <th className="text-left p-2">Match</th>
-                        <th className="text-left p-2">Index</th>
-                        <th className="text-left p-2">Length</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {matches.map((m, i) => (
-                        <tr key={i} className="border-t">
-                          <td className="p-2">{i + 1}</td>
-                          <td className="p-2 font-mono">{m.match || '(empty)'}</td>
-                          <td className="p-2">{m.index}</td>
-                          <td className="p-2">{m.length}</td>
+              {matches.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Match Details</Label>
+                  <div className="max-h-[200px] overflow-y-auto border rounded-md">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted sticky top-0">
+                        <tr>
+                          <th className="text-left p-2">#</th>
+                          <th className="text-left p-2">Match</th>
+                          <th className="text-left p-2">Index</th>
+                          <th className="text-left p-2">Length</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {matches.map((m, i) => (
+                          <tr key={i} className="border-t">
+                            <td className="p-2">{i + 1}</td>
+                            <td className="p-2 font-mono">{m.match || '(empty)'}</td>
+                            <td className="p-2">{m.index}</td>
+                            <td className="p-2">{m.length}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
-      <Toaster />
-    </div>
-  );
+              )}
+            </CardContent>
+          </Card>
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

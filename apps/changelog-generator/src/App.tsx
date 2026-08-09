@@ -11,8 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Copy, Download, Plus, Trash2 } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   generateChangelog,
   createEmptyVersion,
@@ -21,12 +19,11 @@ import {
   type VersionRelease,
   type ChangeCategory,
 } from '@/utils/changelogGenerator';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [versions, setVersions] = useState<VersionRelease[]>([createEmptyVersion()]);
   const [projectName, setProjectName] = useState('');
-  const { toast } = useToast();
-
   const output = useMemo(
     () => generateChangelog(versions, projectName || undefined),
     [versions, projectName]
@@ -89,9 +86,9 @@ export default function App() {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(output);
-      toast({ title: 'Copied to clipboard' });
+      toast.add({ title: 'Copied to clipboard' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -103,189 +100,189 @@ export default function App() {
     a.download = 'CHANGELOG.md';
     a.click();
     URL.revokeObjectURL(url);
-    toast({ title: 'Downloaded CHANGELOG.md' });
+    toast.add({ title: 'Downloaded CHANGELOG.md' });
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Changelog Generator</h1>
-          <p className="text-muted-foreground">
-            Generate CHANGELOG.md in Keep a Changelog format.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Changelog Generator</h1>
+            <p className="text-muted-foreground">
+              Generate CHANGELOG.md in Keep a Changelog format.
+            </p>
+          </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr,1fr]">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Label htmlFor="project-name">Project Name (optional)</Label>
-                  <Input
-                    id="project-name"
-                    placeholder="My Project"
-                    value={projectName}
-                    onChange={(e) => setProjectName(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Versions</h2>
-              <Button type="button" variant="outline" size="sm" onClick={addVersion}>
-                <Plus className="mr-1 h-3 w-3" /> Add Version
-              </Button>
-            </div>
-
-            {versions.map((version) => (
-              <Card key={version.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">
-                      {version.version || 'Unreleased'}
-                    </CardTitle>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeVersion(version.id)}
-                      disabled={versions.length === 1}
-                      aria-label="Remove version"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+          <div className="grid gap-6 lg:grid-cols-[1fr,1fr]">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Project</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Version</Label>
-                      <Input
-                        placeholder="1.0.0"
-                        value={version.version}
-                        onChange={(e) =>
-                          updateVersion(version.id, 'version', e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Date</Label>
-                      <Input
-                        type="date"
-                        value={version.date}
-                        onChange={(e) =>
-                          updateVersion(version.id, 'date', e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-
+                <CardContent>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Entries</Label>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => addEntry(version.id)}
-                      >
-                        <Plus className="mr-1 h-3 w-3" /> Add Entry
-                      </Button>
-                    </div>
-
-                    {version.entries.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-2">
-                        No entries. Click "Add Entry" to add changes.
-                      </p>
-                    )}
-
-                    {version.entries.map((entry) => (
-                      <div key={entry.id} className="flex gap-2 items-start">
-                        <Select
-                          value={entry.category}
-                          onValueChange={(v) =>
-                            updateEntry(
-                              version.id,
-                              entry.id,
-                              'category',
-                              v as ChangeCategory
-                            )
-                          }
-                        >
-                          <SelectTrigger className="w-[130px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {CATEGORIES.map((cat) => (
-                              <SelectItem key={cat} value={cat}>
-                                {cat}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          className="flex-1"
-                          placeholder="Description of change..."
-                          value={entry.description}
-                          onChange={(e) =>
-                            updateEntry(
-                              version.id,
-                              entry.id,
-                              'description',
-                              e.target.value
-                            )
-                          }
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeEntry(version.id, entry.id)}
-                          aria-label="Remove entry"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                    <Label htmlFor="project-name">Project Name (optional)</Label>
+                    <Input
+                      id="project-name"
+                      placeholder="My Project"
+                      value={projectName}
+                      onChange={(e) => setProjectName(e.target.value)}
+                    />
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Preview</CardTitle>
-              <CardDescription>Generated CHANGELOG.md content.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <pre className="min-h-[500px] max-h-[700px] overflow-auto rounded-md border bg-muted p-4 text-sm font-mono whitespace-pre-wrap">
-                {output}
-              </pre>
-
-              <div className="flex gap-2">
-                <Button type="button" onClick={copyToClipboard} className="flex-1">
-                  <Copy className="mr-2 h-4 w-4" /> Copy
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={downloadFile}
-                  className="flex-1"
-                >
-                  <Download className="mr-2 h-4 w-4" /> Download
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Versions</h2>
+                <Button type="button" variant="outline" size="sm" onClick={addVersion}>
+                  <Plus className="mr-1 h-3 w-3" /> Add Version
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+
+              {versions.map((version) => (
+                <Card key={version.id}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">
+                        {version.version || 'Unreleased'}
+                      </CardTitle>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeVersion(version.id)}
+                        disabled={versions.length === 1}
+                        aria-label="Remove version"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Version</Label>
+                        <Input
+                          placeholder="1.0.0"
+                          value={version.version}
+                          onChange={(e) =>
+                            updateVersion(version.id, 'version', e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Date</Label>
+                        <Input
+                          type="date"
+                          value={version.date}
+                          onChange={(e) =>
+                            updateVersion(version.id, 'date', e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Entries</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => addEntry(version.id)}
+                        >
+                          <Plus className="mr-1 h-3 w-3" /> Add Entry
+                        </Button>
+                      </div>
+
+                      {version.entries.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-2">
+                          No entries. Click "Add Entry" to add changes.
+                        </p>
+                      )}
+
+                      {version.entries.map((entry) => (
+                        <div key={entry.id} className="flex gap-2 items-start">
+                          <Select
+                            value={entry.category}
+                            onValueChange={(v) =>
+                              updateEntry(
+                                version.id,
+                                entry.id,
+                                'category',
+                                v as ChangeCategory
+                              )
+                            }
+                          >
+                            <SelectTrigger className="w-[130px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {CATEGORIES.map((cat) => (
+                                <SelectItem key={cat} value={cat}>
+                                  {cat}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            className="flex-1"
+                            placeholder="Description of change..."
+                            value={entry.description}
+                            onChange={(e) =>
+                              updateEntry(
+                                version.id,
+                                entry.id,
+                                'description',
+                                e.target.value
+                              )
+                            }
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeEntry(version.id, entry.id)}
+                            aria-label="Remove entry"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Preview</CardTitle>
+                <CardDescription>Generated CHANGELOG.md content.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <pre className="min-h-[500px] max-h-[700px] overflow-auto rounded-md border bg-muted p-4 text-sm font-mono whitespace-pre-wrap">
+                  {output}
+                </pre>
+
+                <div className="flex gap-2">
+                  <Button type="button" onClick={copyToClipboard} className="flex-1">
+                    <Copy className="mr-2 h-4 w-4" /> Copy
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={downloadFile}
+                    className="flex-1"
+                  >
+                    <Download className="mr-2 h-4 w-4" /> Download
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

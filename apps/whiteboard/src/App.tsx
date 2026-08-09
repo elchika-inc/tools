@@ -2,8 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   Pen,
   Eraser,
@@ -30,6 +28,7 @@ import {
   getCanvasPoint,
   saveAsPng,
 } from '@/utils/whiteboardEngine';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
@@ -51,7 +50,6 @@ const COLORS = [
 const STROKE_WIDTHS = [1, 2, 4, 6, 10];
 
 export default function App() {
-  const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [wbState, setWbState] = useState<WhiteboardState>(createInitialState);
   const [currentTool, setCurrentTool] = useState<Tool>('pen');
@@ -160,14 +158,14 @@ export default function App() {
 
   const handleClear = () => {
     setWbState(clearAll());
-    toast({ title: 'Canvas cleared' });
+    toast.add({ title: 'Canvas cleared' });
   };
 
   const handleSave = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     saveAsPng(canvas);
-    toast({ title: 'Saved as PNG' });
+    toast.add({ title: 'Saved as PNG' });
   };
 
   useEffect(() => {
@@ -185,125 +183,125 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  return (
-    <div className="min-h-screen bg-background p-4">
-      <main className="max-w-7xl mx-auto space-y-4">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">Whiteboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Draw, sketch, and save your ideas. Touch supported.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-4">
+        <main className="max-w-7xl mx-auto space-y-4">
+          <header className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">Whiteboard</h1>
+            <p className="text-sm text-muted-foreground">
+              Draw, sketch, and save your ideas. Touch supported.
+            </p>
+          </header>
 
-        <Card>
-          <CardContent className="pt-3 pb-3">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex gap-1">
-                {TOOLS.map((tool) => (
-                  <Button
-                    key={tool.id}
-                    type="button"
-                    variant={currentTool === tool.id ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setCurrentTool(tool.id)}
-                    title={tool.label}
-                    aria-label={tool.label}
-                  >
-                    {tool.icon}
-                  </Button>
-                ))}
-              </div>
-
-              <div className="w-px h-8 bg-border" />
-
-              <div className="flex gap-1">
-                {COLORS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    className={`w-7 h-7 rounded-md border-2 ${
-                      currentColor === c ? 'border-foreground' : 'border-border'
-                    }`}
-                    style={{ backgroundColor: c }}
-                    onClick={() => setCurrentColor(c)}
-                    title={c}
-                  />
-                ))}
-              </div>
-
-              <div className="w-px h-8 bg-border" />
-
-              <div className="flex items-center gap-2">
-                <Label className="text-xs">Width:</Label>
+          <Card>
+            <CardContent className="pt-3 pb-3">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="flex gap-1">
-                  {STROKE_WIDTHS.map((w) => (
+                  {TOOLS.map((tool) => (
                     <Button
-                      key={w}
+                      key={tool.id}
                       type="button"
-                      variant={currentWidth === w ? 'default' : 'outline'}
+                      variant={currentTool === tool.id ? 'default' : 'outline'}
                       size="sm"
-                      className="w-8 h-8 p-0"
-                      onClick={() => setCurrentWidth(w)}
+                      onClick={() => setCurrentTool(tool.id)}
+                      title={tool.label}
+                      aria-label={tool.label}
                     >
-                      {w}
+                      {tool.icon}
                     </Button>
                   ))}
                 </div>
+
+                <div className="w-px h-8 bg-border" />
+
+                <div className="flex gap-1">
+                  {COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`w-7 h-7 rounded-md border-2 ${
+                        currentColor === c ? 'border-foreground' : 'border-border'
+                      }`}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setCurrentColor(c)}
+                      title={c}
+                    />
+                  ))}
+                </div>
+
+                <div className="w-px h-8 bg-border" />
+
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Width:</Label>
+                  <div className="flex gap-1">
+                    {STROKE_WIDTHS.map((w) => (
+                      <Button
+                        key={w}
+                        type="button"
+                        variant={currentWidth === w ? 'default' : 'outline'}
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() => setCurrentWidth(w)}
+                      >
+                        {w}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="w-px h-8 bg-border" />
+
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUndo}
+                    disabled={wbState.strokes.length === 0}
+                    title="Undo (Ctrl+Z)"
+                    aria-label="Undo"
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRedo}
+                    disabled={wbState.undoneStrokes.length === 0}
+                    title="Redo (Ctrl+Shift+Z)"
+                    aria-label="Redo"
+                  >
+                    <Redo2 className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={handleClear} aria-label="Clear canvas">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={handleSave}>
+                    <Download className="h-4 w-4 mr-1" /> PNG
+                  </Button>
+                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="w-px h-8 bg-border" />
-
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleUndo}
-                  disabled={wbState.strokes.length === 0}
-                  title="Undo (Ctrl+Z)"
-                  aria-label="Undo"
-                >
-                  <Undo2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRedo}
-                  disabled={wbState.undoneStrokes.length === 0}
-                  title="Redo (Ctrl+Shift+Z)"
-                  aria-label="Redo"
-                >
-                  <Redo2 className="h-4 w-4" />
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={handleClear} aria-label="Clear canvas">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={handleSave}>
-                  <Download className="h-4 w-4 mr-1" /> PNG
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="border rounded-lg overflow-hidden bg-white">
-          <canvas
-            ref={canvasRef}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            className="w-full cursor-crosshair touch-none"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          />
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+          <div className="border rounded-lg overflow-hidden bg-white">
+            <canvas
+              ref={canvasRef}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
+              className="w-full cursor-crosshair touch-none"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            />
+          </div>
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

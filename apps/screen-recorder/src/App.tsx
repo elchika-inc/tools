@@ -10,8 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   downloadBlob,
   FORMATS,
@@ -19,6 +17,7 @@ import {
   getSupportedMimeType,
   type RecordingFormat,
 } from '@/utils/screenRecorder';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [isRecording, setIsRecording] = useState(false);
@@ -32,9 +31,6 @@ export default function App() {
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  const { toast } = useToast();
-
   const cleanupStream = useCallback(() => {
     if (streamRef.current) {
       for (const track of streamRef.current.getTracks()) {
@@ -103,10 +99,10 @@ export default function App() {
     } catch (error) {
       cleanupStream();
       if (error instanceof Error && error.name !== 'AbortError') {
-        toast({
+        toast.add({
           title: 'Recording failed',
           description: error.message,
-          variant: 'destructive',
+          type: "error",
         });
       }
     }
@@ -135,104 +131,104 @@ export default function App() {
     };
   }, [cleanupStream, previewUrl]);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Screen Recorder</h1>
-          <p className="text-muted-foreground">
-            Record your screen directly in the browser. No external tools required.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Screen Recorder</h1>
+            <p className="text-muted-foreground">
+              Record your screen directly in the browser. No external tools required.
+            </p>
+          </header>
 
-        <main>
-        <Card>
-          <CardHeader>
-            <CardTitle>Recording Controls</CardTitle>
-            <CardDescription>Select format and start recording your screen.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Controls Row */}
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="format">Format</Label>
-                <Select
-                  value={format}
-                  onValueChange={(v) => setFormat(v as RecordingFormat)}
-                  disabled={isRecording}
-                >
-                  <SelectTrigger className="w-[140px]" id="format">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FORMATS.map((f) => (
-                      <SelectItem key={f} value={f}>
-                        {f.toUpperCase()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <main>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recording Controls</CardTitle>
+              <CardDescription>Select format and start recording your screen.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Controls Row */}
+              <div className="flex flex-wrap items-end gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="format">Format</Label>
+                  <Select
+                    value={format}
+                    onValueChange={(v) => setFormat(v as RecordingFormat)}
+                    disabled={isRecording}
+                  >
+                    <SelectTrigger className="w-[140px]" id="format">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FORMATS.map((f) => (
+                        <SelectItem key={f} value={f}>
+                          {f.toUpperCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {!isRecording ? (
+                  <Button type="button" onClick={handleStartRecording}>
+                    <Circle className="mr-2 h-4 w-4 fill-red-500 text-red-500" />
+                    Start Recording
+                  </Button>
+                ) : (
+                  <Button type="button" variant="destructive" onClick={handleStopRecording}>
+                    <Square className="mr-2 h-4 w-4" />
+                    Stop Recording
+                  </Button>
+                )}
+
+                {recordedBlob && (
+                  <Button type="button" variant="outline" onClick={handleDownload}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </Button>
+                )}
               </div>
 
-              {!isRecording ? (
-                <Button type="button" onClick={handleStartRecording}>
-                  <Circle className="mr-2 h-4 w-4 fill-red-500 text-red-500" />
-                  Start Recording
-                </Button>
-              ) : (
-                <Button type="button" variant="destructive" onClick={handleStopRecording}>
-                  <Square className="mr-2 h-4 w-4" />
-                  Stop Recording
-                </Button>
+              {/* Timer */}
+              {isRecording && (
+                <div className="flex items-center gap-2 text-lg font-mono">
+                  <span className="inline-block h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+                  <span>Recording: {formatDuration(duration)}</span>
+                </div>
               )}
 
-              {recordedBlob && (
-                <Button type="button" variant="outline" onClick={handleDownload}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
+              {/* Duration after recording */}
+              {!isRecording && recordedBlob && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Video className="h-4 w-4" />
+                  <span>
+                    Duration: {formatDuration(duration)} | Size:{' '}
+                    {(recordedBlob.size / (1024 * 1024)).toFixed(2)} MB
+                  </span>
+                </div>
               )}
-            </div>
 
-            {/* Timer */}
-            {isRecording && (
-              <div className="flex items-center gap-2 text-lg font-mono">
-                <span className="inline-block h-3 w-3 rounded-full bg-red-500 animate-pulse" />
-                <span>Recording: {formatDuration(duration)}</span>
-              </div>
-            )}
-
-            {/* Duration after recording */}
-            {!isRecording && recordedBlob && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Video className="h-4 w-4" />
-                <span>
-                  Duration: {formatDuration(duration)} | Size:{' '}
-                  {(recordedBlob.size / (1024 * 1024)).toFixed(2)} MB
-                </span>
-              </div>
-            )}
-
-            {/* Video Preview */}
-            {previewUrl && (
-              <div className="space-y-2">
-                <Label>Preview</Label>
-                <video
-                  ref={videoRef}
-                  src={previewUrl}
-                  controls
-                  className="w-full rounded-md border bg-black"
-                  style={{ maxHeight: '480px' }}
-                >
-                  <track kind="captions" />
-                </video>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </main>
+              {/* Video Preview */}
+              {previewUrl && (
+                <div className="space-y-2">
+                  <Label>Preview</Label>
+                  <video
+                    ref={videoRef}
+                    src={previewUrl}
+                    controls
+                    className="w-full rounded-md border bg-black"
+                    style={{ maxHeight: '480px' }}
+                  >
+                    <track kind="captions" />
+                  </video>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          </main>
+        </div>
+        
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }

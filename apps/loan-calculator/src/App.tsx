@@ -10,14 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { Calculator } from 'lucide-react';
 import {
   calculateEqualPayment,
   calculateEqualPrincipal,
   type LoanResult,
 } from '@/utils/loanCalculator';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 type Method = 'equal-payment' | 'equal-principal';
 
@@ -29,23 +28,21 @@ export default function App() {
   const [method, setMethod] = useState<Method>('equal-payment');
   const [result, setResult] = useState<LoanResult | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { toast } = useToast();
-
   const handleCalculate = () => {
     const p = Number(principal);
     const r = Number(annualRate);
     const totalMonths = (Number(years) || 0) * 12 + (Number(months) || 0);
 
     if (!p || p <= 0) {
-      toast({ title: '借入額を正の数で入力してください', variant: 'destructive' });
+      toast.add({ title: '借入額を正の数で入力してください', type: "error" });
       return;
     }
     if (r < 0) {
-      toast({ title: '金利は0以上を入力してください', variant: 'destructive' });
+      toast.add({ title: '金利は0以上を入力してください', type: "error" });
       return;
     }
     if (totalMonths <= 0) {
-      toast({ title: '返済期間を入力してください', variant: 'destructive' });
+      toast.add({ title: '返済期間を入力してください', type: "error" });
       return;
     }
 
@@ -57,10 +54,10 @@ export default function App() {
           : calculateEqualPrincipal(input);
       setResult(res);
     } catch (e) {
-      toast({
+      toast.add({
         title: '計算エラー',
         description: e instanceof Error ? e.message : '',
-        variant: 'destructive',
+        type: "error",
       });
     }
   };
@@ -159,173 +156,173 @@ export default function App() {
     ctx.fillText('利息', padding.left + 76, height - 5);
   }, [result]);
 
-  return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">ローン返済シミュレーター</h1>
-          <p className="text-muted-foreground">
-            元利均等・元金均等の返済シミュレーション。返済スケジュールとグラフを表示。
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-4 md:p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">ローン返済シミュレーター</h1>
+            <p className="text-muted-foreground">
+              元利均等・元金均等の返済シミュレーション。返済スケジュールとグラフを表示。
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>入力</CardTitle>
-            <CardDescription>借入条件を入力してください</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              <div className="space-y-2">
-                <Label htmlFor="principal">借入額 (円)</Label>
-                <Input
-                  id="principal"
-                  type="number"
-                  min="0"
-                  placeholder="10000000"
-                  value={principal}
-                  onChange={(e) => setPrincipal(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="rate">年利 (%)</Label>
-                <Input
-                  id="rate"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  placeholder="3.0"
-                  value={annualRate}
-                  onChange={(e) => setAnnualRate(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="years">返済期間 (年)</Label>
-                <Input
-                  id="years"
-                  type="number"
-                  min="0"
-                  placeholder="35"
-                  value={years}
-                  onChange={(e) => setYears(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="months">+ (月)</Label>
-                <Input
-                  id="months"
-                  type="number"
-                  min="0"
-                  max="11"
-                  placeholder="0"
-                  value={months}
-                  onChange={(e) => setMonths(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>返済方式</Label>
-                <Select value={method} onValueChange={(v) => setMethod(v as Method)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="equal-payment">元利均等返済</SelectItem>
-                    <SelectItem value="equal-principal">元金均等返済</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Button type="button" onClick={handleCalculate} className="w-full sm:w-auto">
-              <Calculator className="mr-2 h-4 w-4" /> シミュレーション実行
-            </Button>
-          </CardContent>
-        </Card>
-
-        {result && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>結果サマリー</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">
-                      {method === 'equal-payment' ? '毎月の返済額' : '初月の返済額'}
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {formatCurrency(result.monthlyPaymentFirst)}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">返済総額</p>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(result.totalPayment)}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">利息総額</p>
-                    <p className="text-2xl font-bold text-orange-600">
-                      {formatCurrency(result.totalInterest)}
-                    </p>
-                  </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>入力</CardTitle>
+              <CardDescription>借入条件を入力してください</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="space-y-2">
+                  <Label htmlFor="principal">借入額 (円)</Label>
+                  <Input
+                    id="principal"
+                    type="number"
+                    min="0"
+                    placeholder="10000000"
+                    value={principal}
+                    onChange={(e) => setPrincipal(e.target.value)}
+                  />
                 </div>
-              </CardContent>
-            </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="rate">年利 (%)</Label>
+                  <Input
+                    id="rate"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="3.0"
+                    value={annualRate}
+                    onChange={(e) => setAnnualRate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="years">返済期間 (年)</Label>
+                  <Input
+                    id="years"
+                    type="number"
+                    min="0"
+                    placeholder="35"
+                    value={years}
+                    onChange={(e) => setYears(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="months">+ (月)</Label>
+                  <Input
+                    id="months"
+                    type="number"
+                    min="0"
+                    max="11"
+                    placeholder="0"
+                    value={months}
+                    onChange={(e) => setMonths(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>返済方式</Label>
+                  <Select value={method} onValueChange={(v) => setMethod(v as Method)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="equal-payment">元利均等返済</SelectItem>
+                      <SelectItem value="equal-principal">元金均等返済</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button type="button" onClick={handleCalculate} className="w-full sm:w-auto">
+                <Calculator className="mr-2 h-4 w-4" /> シミュレーション実行
+              </Button>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>元金 vs 利息 (年別)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <canvas ref={canvasRef} className="w-full" style={{ height: '300px' }} />
-              </CardContent>
-            </Card>
+          {result && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>結果サマリー</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">
+                        {method === 'equal-payment' ? '毎月の返済額' : '初月の返済額'}
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {formatCurrency(result.monthlyPaymentFirst)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">返済総額</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {formatCurrency(result.totalPayment)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">利息総額</p>
+                      <p className="text-2xl font-bold text-orange-600">
+                        {formatCurrency(result.totalInterest)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>返済スケジュール</CardTitle>
-                <CardDescription>全{result.schedule.length}回の返済明細</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto max-h-96 overflow-y-auto">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-background">
-                      <tr className="border-b">
-                        <th className="text-left py-2 px-2">回</th>
-                        <th className="text-right py-2 px-2">返済額</th>
-                        <th className="text-right py-2 px-2">元金</th>
-                        <th className="text-right py-2 px-2">利息</th>
-                        <th className="text-right py-2 px-2">残高</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {result.schedule.map((item) => (
-                        <tr key={item.month} className="border-b">
-                          <td className="py-1 px-2">{item.month}</td>
-                          <td className="text-right py-1 px-2">
-                            {formatCurrency(item.payment)}
-                          </td>
-                          <td className="text-right py-1 px-2">
-                            {formatCurrency(item.principalPart)}
-                          </td>
-                          <td className="text-right py-1 px-2 text-orange-600">
-                            {formatCurrency(item.interestPart)}
-                          </td>
-                          <td className="text-right py-1 px-2">
-                            {formatCurrency(item.remainingBalance)}
-                          </td>
+              <Card>
+                <CardHeader>
+                  <CardTitle>元金 vs 利息 (年別)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <canvas ref={canvasRef} className="w-full" style={{ height: '300px' }} />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>返済スケジュール</CardTitle>
+                  <CardDescription>全{result.schedule.length}回の返済明細</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-background">
+                        <tr className="border-b">
+                          <th className="text-left py-2 px-2">回</th>
+                          <th className="text-right py-2 px-2">返済額</th>
+                          <th className="text-right py-2 px-2">元金</th>
+                          <th className="text-right py-2 px-2">利息</th>
+                          <th className="text-right py-2 px-2">残高</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+                      </thead>
+                      <tbody>
+                        {result.schedule.map((item) => (
+                          <tr key={item.month} className="border-b">
+                            <td className="py-1 px-2">{item.month}</td>
+                            <td className="text-right py-1 px-2">
+                              {formatCurrency(item.payment)}
+                            </td>
+                            <td className="text-right py-1 px-2">
+                              {formatCurrency(item.principalPart)}
+                            </td>
+                            <td className="text-right py-1 px-2 text-orange-600">
+                              {formatCurrency(item.interestPart)}
+                            </td>
+                            <td className="text-right py-1 px-2">
+                              {formatCurrency(item.remainingBalance)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

@@ -10,8 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/useToast';
 import {
   type OutputFormat,
   type ConvertOptions,
@@ -25,6 +23,7 @@ import {
   formatFileSize,
   formatDuration,
 } from '@/utils/audioConvert';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 interface FileInfo {
   file: File;
@@ -64,12 +63,12 @@ export default function App() {
         channels: audioBuffer.numberOfChannels,
       });
 
-      toast({ title: 'File loaded', description: file.name });
+      toast.add({ title: 'File loaded', description: file.name });
     } catch {
-      toast({
+      toast.add({
         title: 'Error',
         description: 'Failed to load audio file. Please check the format.',
-        variant: 'destructive',
+        type: "error",
       });
       setFileInfo(null);
     }
@@ -90,10 +89,10 @@ export default function App() {
       setResultBlob(blob);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      toast({ title: 'Conversion complete', description: formatFileSize(blob.size) });
+      toast.add({ title: 'Conversion complete', description: formatFileSize(blob.size) });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Conversion failed';
-      toast({ title: 'Error', description: message, variant: 'destructive' });
+      toast.add({ title: 'Error', description: message, type: "error" });
     } finally {
       setConverting(false);
     }
@@ -118,147 +117,147 @@ export default function App() {
     }
   }, [resultUrl]);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-2xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Audio Convert</h1>
-          <p className="text-muted-foreground">
-            オーディオファイルのフォーマットを変換します
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-2xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Audio Convert</h1>
+            <p className="text-muted-foreground">
+              オーディオファイルのフォーマットを変換します
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>ファイル選択</CardTitle>
-            <CardDescription>変換するオーディオファイルを選択してください</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="audio-file">オーディオファイル</Label>
-              <Input
-                id="audio-file"
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*"
-                onChange={handleFileChange}
-                className="mt-1"
-              />
-            </div>
-            {fileInfo && (
-              <div className="text-sm text-muted-foreground space-y-1 rounded-md bg-muted p-3">
-                <p>ファイル名: {fileInfo.file.name}</p>
-                <p>サイズ: {formatFileSize(fileInfo.file.size)}</p>
-                <p>再生時間: {formatDuration(fileInfo.duration)}</p>
-                <p>サンプルレート: {fileInfo.sampleRate} Hz</p>
-                <p>チャンネル: {fileInfo.channels}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>変換設定</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>出力フォーマット</Label>
-              <Select
-                value={options.format}
-                onValueChange={(v) => setOptions((prev) => ({ ...prev, format: v as OutputFormat }))}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FORMAT_OPTIONS.map((fmt) => (
-                    <SelectItem key={fmt.value} value={fmt.value}>
-                      {fmt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>サンプルレート</Label>
-              <Select
-                value={String(options.sampleRate)}
-                onValueChange={(v) =>
-                  setOptions((prev) => ({ ...prev, sampleRate: Number(v) }))
-                }
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SAMPLE_RATES.map((rate) => (
-                    <SelectItem key={rate} value={String(rate)}>
-                      {rate} Hz
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {options.format !== 'wav' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>ファイル選択</CardTitle>
+              <CardDescription>変換するオーディオファイルを選択してください</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <Label>ビットレート</Label>
+                <Label htmlFor="audio-file">オーディオファイル</Label>
+                <Input
+                  id="audio-file"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileChange}
+                  className="mt-1"
+                />
+              </div>
+              {fileInfo && (
+                <div className="text-sm text-muted-foreground space-y-1 rounded-md bg-muted p-3">
+                  <p>ファイル名: {fileInfo.file.name}</p>
+                  <p>サイズ: {formatFileSize(fileInfo.file.size)}</p>
+                  <p>再生時間: {formatDuration(fileInfo.duration)}</p>
+                  <p>サンプルレート: {fileInfo.sampleRate} Hz</p>
+                  <p>チャンネル: {fileInfo.channels}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>変換設定</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>出力フォーマット</Label>
                 <Select
-                  value={String(options.bitRate)}
+                  value={options.format}
+                  onValueChange={(v) => setOptions((prev) => ({ ...prev, format: v as OutputFormat }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FORMAT_OPTIONS.map((fmt) => (
+                      <SelectItem key={fmt.value} value={fmt.value}>
+                        {fmt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>サンプルレート</Label>
+                <Select
+                  value={String(options.sampleRate)}
                   onValueChange={(v) =>
-                    setOptions((prev) => ({ ...prev, bitRate: Number(v) }))
+                    setOptions((prev) => ({ ...prev, sampleRate: Number(v) }))
                   }
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {BIT_RATES.map((rate) => (
+                    {SAMPLE_RATES.map((rate) => (
                       <SelectItem key={rate} value={String(rate)}>
-                        {rate} kbps
+                        {rate} Hz
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            )}
-          </CardContent>
-        </Card>
 
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            onClick={handleConvert}
-            disabled={!fileInfo || converting}
-            className="flex-1"
-          >
-            {converting ? '変換中...' : '変換'}
-          </Button>
-          <Button type="button" variant="outline" onClick={handleReset}>
-            リセット
-          </Button>
-        </div>
-
-        {resultUrl && resultBlob && (
-          <Card>
-            <CardHeader>
-              <CardTitle>変換結果</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                <p>出力サイズ: {formatFileSize(resultBlob.size)}</p>
-              </div>
-              <audio controls src={resultUrl} className="w-full" />
-              <Button type="button" onClick={handleDownload} className="w-full">
-                ダウンロード
-              </Button>
+              {options.format !== 'wav' && (
+                <div>
+                  <Label>ビットレート</Label>
+                  <Select
+                    value={String(options.bitRate)}
+                    onValueChange={(v) =>
+                      setOptions((prev) => ({ ...prev, bitRate: Number(v) }))
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BIT_RATES.map((rate) => (
+                        <SelectItem key={rate} value={String(rate)}>
+                          {rate} kbps
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </CardContent>
           </Card>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              onClick={handleConvert}
+              disabled={!fileInfo || converting}
+              className="flex-1"
+            >
+              {converting ? '変換中...' : '変換'}
+            </Button>
+            <Button type="button" variant="outline" onClick={handleReset}>
+              リセット
+            </Button>
+          </div>
+
+          {resultUrl && resultBlob && (
+            <Card>
+              <CardHeader>
+                <CardTitle>変換結果</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  <p>出力サイズ: {formatFileSize(resultBlob.size)}</p>
+                </div>
+                <audio controls src={resultUrl} className="w-full" />
+                <Button type="button" onClick={handleDownload} className="w-full">
+                  ダウンロード
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

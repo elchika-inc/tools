@@ -3,8 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { MapPin, Trash2 } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   parseGeoJSON,
   toFeatureCollection,
@@ -13,6 +11,7 @@ import {
   findFeatureAtPoint,
 } from '@/utils/geojsonRenderer';
 import type { GeoJSONFeatureCollection, GeoJSONFeature } from '@/utils/geojsonRenderer';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 500;
@@ -55,8 +54,6 @@ export default function App() {
   const [selectedFeature, setSelectedFeature] = useState<GeoJSONFeature | null>(null);
   const [featureCount, setFeatureCount] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { toast } = useToast();
-
   const renderGeoJSON = useCallback((geojsonStr: string) => {
     try {
       const parsed = parseGeoJSON(geojsonStr);
@@ -71,9 +68,9 @@ export default function App() {
       if (!ctx) return;
 
       render(ctx, collection, { width: CANVAS_WIDTH, height: CANVAS_HEIGHT, padding: PADDING });
-      toast({ title: `Rendered ${collection.features.length} feature(s)` });
+      toast.add({ title: `Rendered ${collection.features.length} feature(s)` });
     } catch (e) {
-      toast({ title: 'Parse error', description: String(e), variant: 'destructive' });
+      toast.add({ title: 'Parse error', description: String(e), type: "error" });
     }
   }, [toast]);
 
@@ -110,97 +107,97 @@ export default function App() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">GeoJSON Viewer</h1>
-          <p className="text-muted-foreground">
-            Paste GeoJSON data to visualize on a 2D canvas with equirectangular projection.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">GeoJSON Viewer</h1>
+            <p className="text-muted-foreground">
+              Paste GeoJSON data to visualize on a 2D canvas with equirectangular projection.
+            </p>
+          </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr,1fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>GeoJSON Input</CardTitle>
-              <CardDescription>Paste GeoJSON (FeatureCollection, Feature, or Geometry)</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <textarea
-                className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
-                placeholder='{"type": "FeatureCollection", "features": [...]}'
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-              <div className="flex gap-2">
-                <Button type="button" onClick={handleRender} disabled={!input}>
-                  <MapPin className="mr-2 h-4 w-4" /> Render
-                </Button>
-                <Button type="button" variant="outline" onClick={handleLoadSample}>
-                  Load Sample
-                </Button>
-                <Button type="button" variant="outline" onClick={handleClear}>
-                  <Trash2 className="mr-2 h-4 w-4" /> Clear
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="space-y-4">
+          <div className="grid gap-6 lg:grid-cols-[1fr,1fr]">
             <Card>
               <CardHeader>
-                <CardTitle>Map View</CardTitle>
-                <CardDescription>
-                  {featureCount > 0 ? `${featureCount} feature(s) rendered. Click to inspect.` : 'No data rendered yet.'}
-                </CardDescription>
+                <CardTitle>GeoJSON Input</CardTitle>
+                <CardDescription>Paste GeoJSON (FeatureCollection, Feature, or Geometry)</CardDescription>
               </CardHeader>
-              <CardContent>
-                <canvas
-                  ref={canvasRef}
-                  width={CANVAS_WIDTH}
-                  height={CANVAS_HEIGHT}
-                  className="w-full border rounded-md cursor-crosshair"
-                  onClick={handleCanvasClick}
+              <CardContent className="space-y-4">
+                <textarea
+                  className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                  placeholder='{"type": "FeatureCollection", "features": [...]}'
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
                 />
-                <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full bg-red-500 inline-block" /> Point
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" /> LineString
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full bg-green-500 inline-block" /> Polygon
-                  </span>
+                <div className="flex gap-2">
+                  <Button type="button" onClick={handleRender} disabled={!input}>
+                    <MapPin className="mr-2 h-4 w-4" /> Render
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleLoadSample}>
+                    Load Sample
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleClear}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Clear
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {selectedFeature && (
+            <div className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Feature Properties</CardTitle>
+                  <CardTitle>Map View</CardTitle>
+                  <CardDescription>
+                    {featureCount > 0 ? `${featureCount} feature(s) rendered. Click to inspect.` : 'No data rendered yet.'}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-1">
-                    <p className="text-sm"><span className="font-medium">Type:</span> {selectedFeature.geometry.type}</p>
-                    {selectedFeature.properties && Object.entries(selectedFeature.properties).map(([key, value]) => (
-                      <p key={key} className="text-sm">
-                        <span className="font-medium">{key}:</span> {String(value)}
-                      </p>
-                    ))}
-                    {(!selectedFeature.properties || Object.keys(selectedFeature.properties).length === 0) && (
-                      <p className="text-sm text-muted-foreground">No properties</p>
-                    )}
+                  <canvas
+                    ref={canvasRef}
+                    width={CANVAS_WIDTH}
+                    height={CANVAS_HEIGHT}
+                    className="w-full border rounded-md cursor-crosshair"
+                    onClick={handleCanvasClick}
+                  />
+                  <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <span className="w-3 h-3 rounded-full bg-red-500 inline-block" /> Point
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" /> LineString
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-3 h-3 rounded-full bg-green-500 inline-block" /> Polygon
+                    </span>
                   </div>
                 </CardContent>
               </Card>
-            )}
+
+              {selectedFeature && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Feature Properties</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-1">
+                      <p className="text-sm"><span className="font-medium">Type:</span> {selectedFeature.geometry.type}</p>
+                      {selectedFeature.properties && Object.entries(selectedFeature.properties).map(([key, value]) => (
+                        <p key={key} className="text-sm">
+                          <span className="font-medium">{key}:</span> {String(value)}
+                        </p>
+                      ))}
+                      {(!selectedFeature.properties || Object.keys(selectedFeature.properties).length === 0) && (
+                        <p className="text-sm text-muted-foreground">No properties</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

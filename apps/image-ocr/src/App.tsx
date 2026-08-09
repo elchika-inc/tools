@@ -10,9 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Toaster } from "@/components/ui/toaster";
-import { useToast } from "@/hooks/useToast";
 import { LANGUAGES, type OcrLanguage, recognizeText } from "@/utils/ocr";
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -24,15 +23,13 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
-
   const handleFile = useCallback(
     (file: File) => {
       if (!file.type.startsWith("image/")) {
-        toast({
+        toast.add({
           title: "Invalid file type",
           description: "Please select an image file.",
-          variant: "destructive",
+          type: "error",
         });
         return;
       }
@@ -90,12 +87,12 @@ export default function App() {
       });
       setResult(ocrResult.text);
       setConfidence(ocrResult.confidence);
-      toast({ title: "Recognition completed" });
+      toast.add({ title: "Recognition completed" });
     } catch {
-      toast({
+      toast.add({
         title: "Recognition failed",
         description: "An error occurred during text recognition.",
-        variant: "destructive",
+        type: "error",
       });
     } finally {
       setIsProcessing(false);
@@ -106,9 +103,9 @@ export default function App() {
   const copyToClipboard = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(result);
-      toast({ title: "Copied to clipboard" });
+      toast.add({ title: "Copied to clipboard" });
     } catch {
-      toast({ title: "Failed to copy", variant: "destructive" });
+      toast.add({ title: "Failed to copy", type: "error" });
     }
   }, [result, toast]);
 
@@ -123,136 +120,136 @@ export default function App() {
     }
   }, []);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">OCR - Image to Text</h1>
-          <p className="text-muted-foreground">
-            Extract text from images using optical character recognition.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">OCR - Image to Text</h1>
+            <p className="text-muted-foreground">
+              Extract text from images using optical character recognition.
+            </p>
+          </header>
 
-        <main className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Image Upload</CardTitle>
-              <CardDescription>Upload or drag & drop an image to extract text.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <button
-                type="button"
-                className={`relative flex flex-col items-center justify-center w-full min-h-[200px] rounded-md border-2 border-dashed transition-colors cursor-pointer bg-transparent ${
-                  isDragging
-                    ? "border-primary bg-primary/5"
-                    : "border-input hover:border-primary/50"
-                }`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileInput}
-                  className="hidden"
-                  aria-label="画像ファイルを選択"
-                />
-                {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Uploaded preview"
-                    className="max-h-[400px] max-w-full object-contain rounded-md"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground p-8">
-                    <Upload className="h-10 w-10" />
-                    <p className="text-sm font-medium">Click or drag & drop an image here</p>
-                    <p className="text-xs">Supports PNG, JPEG, BMP, TIFF, and more</p>
-                  </div>
-                )}
-              </button>
-
-              <div className="flex flex-wrap gap-4 items-end">
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <Select value={language} onValueChange={(v) => setLanguage(v as OcrLanguage)}>
-                    <SelectTrigger id="language" className="w-[200px]">
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LANGUAGES.map((lang) => (
-                        <SelectItem key={lang.value} value={lang.value}>
-                          {lang.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button
-                  type="button"
-                  onClick={handleRecognize}
-                  disabled={!imageFile || isProcessing}
-                >
-                  <ScanText className="mr-2 h-4 w-4" />
-                  {isProcessing ? "Recognizing..." : "Recognize Text"}
-                </Button>
-              </div>
-
-              {progress !== null && (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Recognizing text...</span>
-                    <span>{Math.round(progress * 100)}%</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-secondary">
-                    <div
-                      className="h-2 rounded-full bg-primary transition-all duration-300"
-                      style={{ width: `${progress * 100}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {(result || confidence !== null) && (
+          <main className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Result</span>
-                  {confidence !== null && (
-                    <span className="text-sm font-normal text-muted-foreground">
-                      Confidence: {confidence.toFixed(1)}%
-                    </span>
-                  )}
-                </CardTitle>
+                <CardTitle>Image Upload</CardTitle>
+                <CardDescription>Upload or drag & drop an image to extract text.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <textarea
-                  readOnly
-                  className="flex min-h-[200px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                  placeholder="Recognized text will appear here..."
-                  value={result}
-                  aria-label="認識されたテキスト結果"
-                />
-                <div className="flex justify-end gap-2 pt-4 border-t">
-                  <Button type="button" variant="outline" onClick={clearAll}>
-                    <Trash2 className="mr-2 h-4 w-4" /> Clear
-                  </Button>
-                  <Button type="button" onClick={copyToClipboard} disabled={!result}>
-                    <Copy className="mr-2 h-4 w-4" /> Copy Text
+                <button
+                  type="button"
+                  className={`relative flex flex-col items-center justify-center w-full min-h-[200px] rounded-md border-2 border-dashed transition-colors cursor-pointer bg-transparent ${
+                    isDragging
+                      ? "border-primary bg-primary/5"
+                      : "border-input hover:border-primary/50"
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInput}
+                    className="hidden"
+                    aria-label="画像ファイルを選択"
+                  />
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Uploaded preview"
+                      className="max-h-[400px] max-w-full object-contain rounded-md"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground p-8">
+                      <Upload className="h-10 w-10" />
+                      <p className="text-sm font-medium">Click or drag & drop an image here</p>
+                      <p className="text-xs">Supports PNG, JPEG, BMP, TIFF, and more</p>
+                    </div>
+                  )}
+                </button>
+
+                <div className="flex flex-wrap gap-4 items-end">
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Language</Label>
+                    <Select value={language} onValueChange={(v) => setLanguage(v as OcrLanguage)}>
+                      <SelectTrigger id="language" className="w-[200px]">
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGES.map((lang) => (
+                          <SelectItem key={lang.value} value={lang.value}>
+                            {lang.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleRecognize}
+                    disabled={!imageFile || isProcessing}
+                  >
+                    <ScanText className="mr-2 h-4 w-4" />
+                    {isProcessing ? "Recognizing..." : "Recognize Text"}
                   </Button>
                 </div>
+
+                {progress !== null && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Recognizing text...</span>
+                      <span>{Math.round(progress * 100)}%</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-secondary">
+                      <div
+                        className="h-2 rounded-full bg-primary transition-all duration-300"
+                        style={{ width: `${progress * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          )}
-        </main>
+
+            {(result || confidence !== null) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Result</span>
+                    {confidence !== null && (
+                      <span className="text-sm font-normal text-muted-foreground">
+                        Confidence: {confidence.toFixed(1)}%
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <textarea
+                    readOnly
+                    className="flex min-h-[200px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    placeholder="Recognized text will appear here..."
+                    value={result}
+                    aria-label="認識されたテキスト結果"
+                  />
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button type="button" variant="outline" onClick={clearAll}>
+                      <Trash2 className="mr-2 h-4 w-4" /> Clear
+                    </Button>
+                    <Button type="button" onClick={copyToClipboard} disabled={!result}>
+                      <Copy className="mr-2 h-4 w-4" /> Copy Text
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </main>
+        </div>
+        
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }

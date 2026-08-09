@@ -2,20 +2,17 @@ import { useCallback, useState } from 'react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
 import { Label } from './components/ui/label';
-import { Toaster } from './components/ui/toaster';
-import { useToast } from './hooks/useToast';
 import { formatJson, minifyJson, parseJson, sortJsonKeys } from './utils/jsonEditor';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 function App() {
   const [input, setInput] = useState('{\n  "name": "example",\n  "value": 42\n}');
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-
   const validate = useCallback(() => {
     const result = parseJson(input);
     setError(result.error);
     if (!result.error) {
-      toast({ title: 'Valid JSON!' });
+      toast.add({ title: 'Valid JSON!' });
     }
   }, [input, toast]);
 
@@ -51,68 +48,68 @@ function App() {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(input);
-      toast({ title: 'Copied!' });
+      toast.add({ title: 'Copied!' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="mx-auto max-w-3xl">
-        <header className="sr-only">
-          <h1>JSON Editor</h1>
-        </header>
-        <main>
-          <Card>
-            <CardHeader>
-              <CardTitle>JSON Editor</CardTitle>
-              <CardDescription>Edit, format, minify, and validate JSON</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={validate} type="button">
-                  Validate
-                </Button>
-                <Button onClick={handleFormat} variant="outline" type="button">
-                  Format
-                </Button>
-                <Button onClick={handleMinify} variant="outline" type="button">
-                  Minify
-                </Button>
-                <Button onClick={handleSort} variant="outline" type="button">
-                  Sort Keys
-                </Button>
-                <Button onClick={handleCopy} variant="outline" type="button">
-                  Copy
-                </Button>
-              </div>
-              {error && (
-                <div role="alert" className="rounded-md bg-red-100 p-3 text-sm text-red-800">
-                  {error}
+  return <ToastToaster>
+  <div className="min-h-screen bg-gray-50 p-4">
+        <div className="mx-auto max-w-3xl">
+          <header className="sr-only">
+            <h1>JSON Editor</h1>
+          </header>
+          <main>
+            <Card>
+              <CardHeader>
+                <CardTitle>JSON Editor</CardTitle>
+                <CardDescription>Edit, format, minify, and validate JSON</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={validate} type="button">
+                    Validate
+                  </Button>
+                  <Button onClick={handleFormat} variant="outline" type="button">
+                    Format
+                  </Button>
+                  <Button onClick={handleMinify} variant="outline" type="button">
+                    Minify
+                  </Button>
+                  <Button onClick={handleSort} variant="outline" type="button">
+                    Sort Keys
+                  </Button>
+                  <Button onClick={handleCopy} variant="outline" type="button">
+                    Copy
+                  </Button>
                 </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="editor">JSON</Label>
-                <textarea
-                  id="editor"
-                  className="w-full rounded-md border p-3 font-mono text-sm"
-                  rows={20}
-                  value={input}
-                  onChange={(e) => {
-                    setInput(e.target.value);
-                    setError(null);
-                  }}
-                  spellCheck={false}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </main>
+                {error && (
+                  <div role="alert" className="rounded-md bg-red-100 p-3 text-sm text-red-800">
+                    {error}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="editor">JSON</Label>
+                  <textarea
+                    id="editor"
+                    className="w-full rounded-md border p-3 font-mono text-sm"
+                    rows={20}
+                    value={input}
+                    onChange={(e) => {
+                      setInput(e.target.value);
+                      setError(null);
+                    }}
+                    spellCheck={false}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+        
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }
 
 export default App;

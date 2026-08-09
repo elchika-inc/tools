@@ -3,8 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   Plus,
   Trash2,
@@ -31,9 +29,9 @@ import {
   importFromNetscapeHtml,
   saveBookmarks,
 } from '@/utils/bookmarkStorage';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
-  const { toast } = useToast();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(loadBookmarks);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -60,7 +58,7 @@ export default function App() {
 
   const handleAdd = () => {
     if (!formUrl.trim() || !formTitle.trim()) {
-      toast({ title: 'URL and title are required', variant: 'destructive' });
+      toast.add({ title: 'URL and title are required', type: "error" });
       return;
     }
     const tags = formTags
@@ -71,7 +69,7 @@ export default function App() {
     setBookmarks(updated);
     resetForm();
     setShowAdd(false);
-    toast({ title: 'Bookmark added' });
+    toast.add({ title: 'Bookmark added' });
   };
 
   const startEdit = (b: Bookmark) => {
@@ -85,7 +83,7 @@ export default function App() {
   const saveEdit = () => {
     if (!editingId) return;
     if (!formUrl.trim() || !formTitle.trim()) {
-      toast({ title: 'URL and title are required', variant: 'destructive' });
+      toast.add({ title: 'URL and title are required', type: "error" });
       return;
     }
     const tags = formTags
@@ -101,12 +99,12 @@ export default function App() {
     setBookmarks(updated);
     setEditingId(null);
     resetForm();
-    toast({ title: 'Bookmark updated' });
+    toast.add({ title: 'Bookmark updated' });
   };
 
   const handleDelete = (id: string) => {
     setBookmarks(deleteBookmark(bookmarks, id));
-    toast({ title: 'Bookmark deleted' });
+    toast.add({ title: 'Bookmark deleted' });
   };
 
   const toggleTag = (tag: string) => {
@@ -118,13 +116,13 @@ export default function App() {
   const handleExportJson = () => {
     const json = exportAsJson(bookmarks);
     downloadFile(json, 'bookmarks.json', 'application/json');
-    toast({ title: 'Exported as JSON' });
+    toast.add({ title: 'Exported as JSON' });
   };
 
   const handleExportHtml = () => {
     const html = exportAsNetscapeHtml(bookmarks);
     downloadFile(html, 'bookmarks.html', 'text/html');
-    toast({ title: 'Exported as HTML' });
+    toast.add({ title: 'Exported as HTML' });
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,9 +141,9 @@ export default function App() {
         const merged = [...imported, ...bookmarks];
         saveBookmarks(merged);
         setBookmarks(merged);
-        toast({ title: `Imported ${imported.length} bookmarks` });
+        toast.add({ title: `Imported ${imported.length} bookmarks` });
       } catch {
-        toast({ title: 'Import failed', variant: 'destructive' });
+        toast.add({ title: 'Import failed', type: "error" });
       }
     };
     reader.readAsText(file);
@@ -221,169 +219,169 @@ export default function App() {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Bookmark Manager</h1>
-          <p className="text-muted-foreground">
-            Save, organize, and search your bookmarks with tags.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Bookmark Manager</h1>
+            <p className="text-muted-foreground">
+              Save, organize, and search your bookmarks with tags.
+            </p>
+          </header>
 
-        <div className="flex flex-wrap gap-3">
-          <Button type="button" onClick={() => { setShowAdd(!showAdd); setEditingId(null); resetForm(); }}>
-            <Plus className="mr-2 h-4 w-4" /> Add Bookmark
-          </Button>
-          <Button type="button" variant="outline" onClick={handleExportJson}>
-            <Download className="mr-2 h-4 w-4" /> JSON
-          </Button>
-          <Button type="button" variant="outline" onClick={handleExportHtml}>
-            <Download className="mr-2 h-4 w-4" /> HTML
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="mr-2 h-4 w-4" /> Import
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json,.html,.htm"
-            className="hidden"
-            onChange={handleImport}
-          />
-        </div>
-
-        {showAdd && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Add Bookmark</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BookmarkForm onSubmit={handleAdd} submitLabel="Add" />
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="flex gap-3 items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search bookmarks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" onClick={() => { setShowAdd(!showAdd); setEditingId(null); resetForm(); }}>
+              <Plus className="mr-2 h-4 w-4" /> Add Bookmark
+            </Button>
+            <Button type="button" variant="outline" onClick={handleExportJson}>
+              <Download className="mr-2 h-4 w-4" /> JSON
+            </Button>
+            <Button type="button" variant="outline" onClick={handleExportHtml}>
+              <Download className="mr-2 h-4 w-4" /> HTML
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="mr-2 h-4 w-4" /> Import
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,.html,.htm"
+              className="hidden"
+              onChange={handleImport}
             />
           </div>
-        </div>
 
-        {allTags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  selectedTags.includes(tag)
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted text-muted-foreground border-border hover:bg-accent'
-                }`}
-                onClick={() => toggleTag(tag)}
-              >
-                <Tag className="h-3 w-3" />
-                {tag}
-              </button>
-            ))}
-            {selectedTags.length > 0 && (
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => setSelectedTags([])}
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {filtered.map((b) => (
-            <Card key={b.id}>
-              <CardContent className="pt-4 pb-4">
-                {editingId === b.id ? (
-                  <BookmarkForm onSubmit={saveEdit} submitLabel="Save" />
-                ) : (
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={b.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-medium text-primary hover:underline truncate"
-                        >
-                          {b.title}
-                        </a>
-                        <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">{b.url}</p>
-                      {b.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{b.description}</p>
-                      )}
-                      {b.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {b.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => startEdit(b)}
-                        aria-label="Edit bookmark"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleDelete(b.id)}
-                        aria-label="Delete bookmark"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
+          {showAdd && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Bookmark</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BookmarkForm onSubmit={handleAdd} submitLabel="Add" />
               </CardContent>
             </Card>
-          ))}
-          {filtered.length === 0 && bookmarks.length > 0 && (
-            <p className="text-center text-muted-foreground py-8">No bookmarks match your search.</p>
           )}
-          {bookmarks.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              No bookmarks yet. Add one to get started!
-            </p>
+
+          <div className="flex gap-3 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search bookmarks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {allTags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    selectedTags.includes(tag)
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted text-muted-foreground border-border hover:bg-accent'
+                  }`}
+                  onClick={() => toggleTag(tag)}
+                >
+                  <Tag className="h-3 w-3" />
+                  {tag}
+                </button>
+              ))}
+              {selectedTags.length > 0 && (
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => setSelectedTags([])}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
           )}
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+
+          <div className="space-y-3">
+            {filtered.map((b) => (
+              <Card key={b.id}>
+                <CardContent className="pt-4 pb-4">
+                  {editingId === b.id ? (
+                    <BookmarkForm onSubmit={saveEdit} submitLabel="Save" />
+                  ) : (
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={b.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium text-primary hover:underline truncate"
+                          >
+                            {b.title}
+                          </a>
+                          <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{b.url}</p>
+                        {b.description && (
+                          <p className="text-sm text-muted-foreground mt-1">{b.description}</p>
+                        )}
+                        {b.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {b.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => startEdit(b)}
+                          aria-label="Edit bookmark"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleDelete(b.id)}
+                          aria-label="Delete bookmark"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+            {filtered.length === 0 && bookmarks.length > 0 && (
+              <p className="text-center text-muted-foreground py-8">No bookmarks match your search.</p>
+            )}
+            {bookmarks.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">
+                No bookmarks yet. Add one to get started!
+              </p>
+            )}
+          </div>
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

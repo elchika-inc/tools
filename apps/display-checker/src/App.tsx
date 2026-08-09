@@ -2,14 +2,11 @@ import { Copy, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { type DisplayInfo, getBreakpoint, getDisplayInfo } from '@/utils/displayInfo';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [info, setInfo] = useState<DisplayInfo | null>(null);
-  const { toast } = useToast();
-
   const refresh = useCallback(() => {
     setInfo(getDisplayInfo());
   }, []);
@@ -27,9 +24,9 @@ export default function App() {
         .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
         .join('\n');
       await navigator.clipboard.writeText(text);
-      toast({ title: 'Copied to clipboard' });
+      toast.add({ title: 'Copied to clipboard' });
     } catch {
-      toast({ title: 'コピーに失敗しました', variant: 'destructive' });
+      toast.add({ title: 'コピーに失敗しました', type: "error" });
     }
   };
 
@@ -54,51 +51,51 @@ export default function App() {
     { label: 'Platform', value: info.platform },
   ];
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Display Checker</h1>
-          <p className="text-muted-foreground">ブラウザの画面サイズ、デバイス情報を表示します。</p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Display Checker</h1>
+            <p className="text-muted-foreground">ブラウザの画面サイズ、デバイス情報を表示します。</p>
+          </header>
 
-        <main className="space-y-6">
-        <div className="flex gap-2">
-          <Button type="button" onClick={refresh}>
-            <RefreshCw className="mr-2 h-4 w-4" /> Refresh
-          </Button>
-          <Button type="button" variant="outline" onClick={copyAll}>
-            <Copy className="mr-2 h-4 w-4" /> Copy All
-          </Button>
+          <main className="space-y-6">
+          <div className="flex gap-2">
+            <Button type="button" onClick={refresh}>
+              <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+            </Button>
+            <Button type="button" variant="outline" onClick={copyAll}>
+              <Copy className="mr-2 h-4 w-4" /> Copy All
+            </Button>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Display Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {items.map((item) => (
+                  <div key={item.label} className="flex items-center gap-2 text-sm">
+                    <span className="w-44 text-muted-foreground">{item.label}</span>
+                    <code className="font-mono">{item.value}</code>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">User Agent</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <code className="text-xs font-mono break-all">{info.userAgent}</code>
+            </CardContent>
+          </Card>
+          </main>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Display Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3">
-              {items.map((item) => (
-                <div key={item.label} className="flex items-center gap-2 text-sm">
-                  <span className="w-44 text-muted-foreground">{item.label}</span>
-                  <code className="font-mono">{item.value}</code>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">User Agent</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <code className="text-xs font-mono break-all">{info.userAgent}</code>
-          </CardContent>
-        </Card>
-        </main>
+        
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }

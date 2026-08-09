@@ -16,8 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { Download, Loader2, Type } from 'lucide-react';
 import {
   type WatermarkConfig,
@@ -29,9 +27,9 @@ import {
   getSupportedMimeType,
   getOutputFileName,
 } from '@/utils/videoWatermark';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
-  const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -156,12 +154,12 @@ export default function App() {
       setResultUrl(url);
       setResultSize(blob.size);
       setProgress(1);
-      toast({ title: 'Watermark applied successfully' });
+      toast.add({ title: 'Watermark applied successfully' });
     } catch (err) {
-      toast({
+      toast.add({
         title: 'Processing failed',
         description: err instanceof Error ? err.message : 'Unknown error',
-        variant: 'destructive',
+        type: "error",
       });
     } finally {
       setProcessing(false);
@@ -176,183 +174,183 @@ export default function App() {
     a.click();
   }, [resultUrl, file]);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Video Watermark</h1>
-          <p className="text-muted-foreground">
-            Add text watermarks to video files. Customize text, size, color, opacity, and position.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Video Watermark</h1>
+            <p className="text-muted-foreground">
+              Add text watermarks to video files. Customize text, size, color, opacity, and position.
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Video</CardTitle>
-            <CardDescription>Select a video file to add a watermark to.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input type="file" accept="video/*" onChange={handleFileSelect} />
-
-            {videoUrl && (
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                controls
-                onLoadedMetadata={handleVideoLoaded}
-                onTimeUpdate={handleTimeUpdate}
-                className="w-full rounded-md border"
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        {videoUrl && (
           <Card>
             <CardHeader>
-              <CardTitle>Watermark Settings</CardTitle>
-              <CardDescription>Customize the watermark appearance and position.</CardDescription>
+              <CardTitle>Upload Video</CardTitle>
+              <CardDescription>Select a video file to add a watermark to.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2 col-span-2">
-                  <Label htmlFor="wm-text">Text</Label>
-                  <Input
-                    id="wm-text"
-                    value={config.text}
-                    onChange={(e) => updateConfig('text', e.target.value)}
-                    placeholder="Enter watermark text"
-                  />
-                </div>
+              <Input type="file" accept="video/*" onChange={handleFileSelect} />
 
-                <div className="space-y-2">
-                  <Label htmlFor="wm-size">Font Size: {config.fontSize}px</Label>
-                  <input
-                    id="wm-size"
-                    type="range"
-                    min={8}
-                    max={120}
-                    step={1}
-                    value={config.fontSize}
-                    onChange={(e) => updateConfig('fontSize', Number(e.target.value))}
-                    className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="wm-opacity">
-                    Opacity: {Math.round(config.opacity * 100)}%
-                  </Label>
-                  <input
-                    id="wm-opacity"
-                    type="range"
-                    min={0.05}
-                    max={1}
-                    step={0.05}
-                    value={config.opacity}
-                    onChange={(e) => updateConfig('opacity', Number(e.target.value))}
-                    className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="wm-color">Color</Label>
-                  <div className="flex gap-2 items-center">
-                    <input
-                      id="wm-color"
-                      type="color"
-                      value={config.color}
-                      onChange={(e) => updateConfig('color', e.target.value)}
-                      className="w-10 h-10 rounded border cursor-pointer"
-                    />
-                    <Input
-                      value={config.color}
-                      onChange={(e) => updateConfig('color', e.target.value)}
-                      placeholder="#ffffff"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Position</Label>
-                  <Select
-                    value={config.position}
-                    onValueChange={(v) => updateConfig('position', v as WatermarkPosition)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {POSITION_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="border rounded-md p-2 bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-2">Preview</p>
-                <canvas
-                  ref={previewCanvasRef}
-                  className="max-w-full h-auto mx-auto rounded"
-                  style={{ maxHeight: '300px' }}
+              {videoUrl && (
+                <video
+                  ref={videoRef}
+                  src={videoUrl}
+                  controls
+                  onLoadedMetadata={handleVideoLoaded}
+                  onTimeUpdate={handleTimeUpdate}
+                  className="w-full rounded-md border"
                 />
-              </div>
-
-              <Button
-                type="button"
-                onClick={handleProcess}
-                disabled={processing || !file || !config.text.trim()}
-                className="w-full"
-              >
-                {processing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing... {Math.round(progress * 100)}%
-                  </>
-                ) : (
-                  <>
-                    <Type className="mr-2 h-4 w-4" />
-                    Apply Watermark
-                  </>
-                )}
-              </Button>
-
-              {processing && (
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: `${Math.round(progress * 100)}%` }}
-                  />
-                </div>
               )}
             </CardContent>
           </Card>
-        )}
 
-        {resultUrl && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Result</CardTitle>
-              <CardDescription>Size: {formatFileSize(resultSize)}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <video src={resultUrl} controls className="w-full rounded-md border" />
-              <Button type="button" onClick={handleDownload} className="w-full">
-                <Download className="mr-2 h-4 w-4" />
-                Download Watermarked Video
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+          {videoUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Watermark Settings</CardTitle>
+                <CardDescription>Customize the watermark appearance and position.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2 col-span-2">
+                    <Label htmlFor="wm-text">Text</Label>
+                    <Input
+                      id="wm-text"
+                      value={config.text}
+                      onChange={(e) => updateConfig('text', e.target.value)}
+                      placeholder="Enter watermark text"
+                    />
+                  </div>
 
-        <canvas ref={canvasRef} className="hidden" />
-      </main>
-      <Toaster />
-    </div>
-  );
+                  <div className="space-y-2">
+                    <Label htmlFor="wm-size">Font Size: {config.fontSize}px</Label>
+                    <input
+                      id="wm-size"
+                      type="range"
+                      min={8}
+                      max={120}
+                      step={1}
+                      value={config.fontSize}
+                      onChange={(e) => updateConfig('fontSize', Number(e.target.value))}
+                      className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="wm-opacity">
+                      Opacity: {Math.round(config.opacity * 100)}%
+                    </Label>
+                    <input
+                      id="wm-opacity"
+                      type="range"
+                      min={0.05}
+                      max={1}
+                      step={0.05}
+                      value={config.opacity}
+                      onChange={(e) => updateConfig('opacity', Number(e.target.value))}
+                      className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="wm-color">Color</Label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        id="wm-color"
+                        type="color"
+                        value={config.color}
+                        onChange={(e) => updateConfig('color', e.target.value)}
+                        className="w-10 h-10 rounded border cursor-pointer"
+                      />
+                      <Input
+                        value={config.color}
+                        onChange={(e) => updateConfig('color', e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Position</Label>
+                    <Select
+                      value={config.position}
+                      onValueChange={(v) => updateConfig('position', v as WatermarkPosition)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {POSITION_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="border rounded-md p-2 bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-2">Preview</p>
+                  <canvas
+                    ref={previewCanvasRef}
+                    className="max-w-full h-auto mx-auto rounded"
+                    style={{ maxHeight: '300px' }}
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleProcess}
+                  disabled={processing || !file || !config.text.trim()}
+                  className="w-full"
+                >
+                  {processing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing... {Math.round(progress * 100)}%
+                    </>
+                  ) : (
+                    <>
+                      <Type className="mr-2 h-4 w-4" />
+                      Apply Watermark
+                    </>
+                  )}
+                </Button>
+
+                {processing && (
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${Math.round(progress * 100)}%` }}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {resultUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Result</CardTitle>
+                <CardDescription>Size: {formatFileSize(resultSize)}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <video src={resultUrl} controls className="w-full rounded-md border" />
+                <Button type="button" onClick={handleDownload} className="w-full">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Watermarked Video
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          <canvas ref={canvasRef} className="hidden" />
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

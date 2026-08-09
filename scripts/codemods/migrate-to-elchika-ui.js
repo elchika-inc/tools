@@ -191,6 +191,28 @@ function migrateComponents(appDir, needsManualWork) {
   }
 }
 
+export function ensureComponentDependencies(appDir) {
+  const targetDir = path.join(appDir, "src", "components", "ui");
+  const toast = path.join(targetDir, "toast.tsx");
+  const button = path.join(targetDir, "button.tsx");
+  if (!existsSync(toast) || existsSync(button)) return;
+  copyFileSync(path.join(REFERENCE_APP, "src", "components", "ui", "button.tsx"), button);
+}
+
+export function migrateButtonTest(appDir) {
+  const target = path.join(appDir, "src", "components", "ui", "__tests__", "button.test.tsx");
+  if (!existsSync(target)) return;
+  const reference = path.join(
+    REFERENCE_APP,
+    "src",
+    "components",
+    "ui",
+    "__tests__",
+    "button.test.tsx",
+  );
+  copyFileSync(reference, target);
+}
+
 function ensureUtils(appDir) {
   const target = path.join(appDir, "src", "lib", "utils.ts");
   if (existsSync(target)) return;
@@ -273,6 +295,8 @@ function migrateApp(appName) {
 
   const needsManualWork = new Set();
   migrateComponents(appDir, needsManualWork);
+  ensureComponentDependencies(appDir);
+  migrateButtonTest(appDir);
   ensureUtils(appDir);
   updateIndexCss(appDir);
   updateIndexHtml(appDir);

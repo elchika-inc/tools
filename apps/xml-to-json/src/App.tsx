@@ -11,9 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Copy, Trash2, ArrowRight } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { convert, type XmlToJsonOptions } from '@/utils/xmlToJson';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [input, setInput] = useState('');
@@ -22,8 +21,6 @@ export default function App() {
   const [attributePrefix, setAttributePrefix] = useState('@');
   const [textContentKey, setTextContentKey] = useState('#text');
   const [prettyPrint, setPrettyPrint] = useState(true);
-  const { toast } = useToast();
-
   const handleConvert = () => {
     try {
       const options: XmlToJsonOptions = {
@@ -34,12 +31,12 @@ export default function App() {
       };
       const result = convert(input, options);
       setOutput(result);
-      toast({ title: 'Converted successfully' });
+      toast.add({ title: 'Converted successfully' });
     } catch (e) {
-      toast({
+      toast.add({
         title: 'Conversion failed',
         description: e instanceof Error ? e.message : 'Unknown error',
-        variant: 'destructive',
+        type: "error",
       });
     }
   };
@@ -47,9 +44,9 @@ export default function App() {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(output);
-      toast({ title: 'Copied to clipboard' });
+      toast.add({ title: 'Copied to clipboard' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -58,125 +55,125 @@ export default function App() {
     setOutput('');
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">XML to JSON Converter</h1>
-          <p className="text-muted-foreground">
-            Convert XML data to JSON format using DOMParser. Configure attribute handling and text content keys.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">XML to JSON Converter</h1>
+            <p className="text-muted-foreground">
+              Convert XML data to JSON format using DOMParser. Configure attribute handling and text content keys.
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Options</CardTitle>
-            <CardDescription>Configure XML to JSON conversion options.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-              <div className="space-y-2">
-                <Label>Include Attributes</Label>
-                <Select
-                  value={includeAttributes ? 'yes' : 'no'}
-                  onValueChange={(v) => setIncludeAttributes(v === 'yes')}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
+          <Card>
+            <CardHeader>
+              <CardTitle>Options</CardTitle>
+              <CardDescription>Configure XML to JSON conversion options.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                <div className="space-y-2">
+                  <Label>Include Attributes</Label>
+                  <Select
+                    value={includeAttributes ? 'yes' : 'no'}
+                    onValueChange={(v) => setIncludeAttributes(v === 'yes')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Attribute Prefix</Label>
+                  <Input
+                    value={attributePrefix}
+                    onChange={(e) => setAttributePrefix(e.target.value)}
+                    placeholder="@"
+                    disabled={!includeAttributes}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Text Content Key</Label>
+                  <Input
+                    value={textContentKey}
+                    onChange={(e) => setTextContentKey(e.target.value)}
+                    placeholder="#text"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Format</Label>
+                  <Select
+                    value={prettyPrint ? 'pretty' : 'compact'}
+                    onValueChange={(v) => setPrettyPrint(v === 'pretty')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pretty">Pretty Print</SelectItem>
+                      <SelectItem value="compact">Compact</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Converter</CardTitle>
+              <CardDescription>Paste XML data and convert to JSON.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-6 md:grid-cols-[1fr,auto,1fr] items-start">
+                <div className="space-y-2">
+                  <Label htmlFor="input">XML Input</Label>
+                  <textarea
+                    id="input"
+                    className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    placeholder={'<root>\n  <item id="1">Hello</item>\n  <item id="2">World</item>\n</root>'}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-4 justify-center pt-10">
+                  <Button type="button" onClick={handleConvert} disabled={!input}>
+                    Convert <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="output">JSON Output</Label>
+                  <textarea
+                    id="output"
+                    readOnly
+                    className="flex min-h-[300px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    placeholder="JSON output will appear here..."
+                    value={output}
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Attribute Prefix</Label>
-                <Input
-                  value={attributePrefix}
-                  onChange={(e) => setAttributePrefix(e.target.value)}
-                  placeholder="@"
-                  disabled={!includeAttributes}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Text Content Key</Label>
-                <Input
-                  value={textContentKey}
-                  onChange={(e) => setTextContentKey(e.target.value)}
-                  placeholder="#text"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Format</Label>
-                <Select
-                  value={prettyPrint ? 'pretty' : 'compact'}
-                  onValueChange={(v) => setPrettyPrint(v === 'pretty')}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pretty">Pretty Print</SelectItem>
-                    <SelectItem value="compact">Compact</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Converter</CardTitle>
-            <CardDescription>Paste XML data and convert to JSON.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-6 md:grid-cols-[1fr,auto,1fr] items-start">
-              <div className="space-y-2">
-                <Label htmlFor="input">XML Input</Label>
-                <textarea
-                  id="input"
-                  className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                  placeholder={'<root>\n  <item id="1">Hello</item>\n  <item id="2">World</item>\n</root>'}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                />
-              </div>
-
-              <div className="flex flex-col gap-4 justify-center pt-10">
-                <Button type="button" onClick={handleConvert} disabled={!input}>
-                  Convert <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={clearAll}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Clear
+                </Button>
+                <Button type="button" onClick={copyToClipboard} disabled={!output}>
+                  <Copy className="mr-2 h-4 w-4" /> Copy Result
                 </Button>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="output">JSON Output</Label>
-                <textarea
-                  id="output"
-                  readOnly
-                  className="flex min-h-[300px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                  placeholder="JSON output will appear here..."
-                  value={output}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={clearAll}>
-                <Trash2 className="mr-2 h-4 w-4" /> Clear
-              </Button>
-              <Button type="button" onClick={copyToClipboard} disabled={!output}>
-                <Copy className="mr-2 h-4 w-4" /> Copy Result
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-      <Toaster />
-    </div>
-  );
+            </CardContent>
+          </Card>
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

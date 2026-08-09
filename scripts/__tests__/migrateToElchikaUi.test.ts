@@ -1,5 +1,13 @@
+/// <reference types="node" />
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { transformToastCalls } from "../codemods/migrate-to-elchika-ui.js";
+import {
+  ensureComponentDependencies,
+  migrateButtonTest,
+  transformToastCalls,
+} from "../codemods/migrate-to-elchika-ui.js";
 
 describe("transformToastCalls", () => {
   it("title のみの呼び出しを toast.add へ変換する", () => {
@@ -59,5 +67,64 @@ describe("transformToastCalls", () => {
     const out = transformToastCalls(src);
     expect(out).toMatch(/<ToastToaster>\s*<div>/);
     expect(out).not.toContain("<Toaster />");
+  });
+});
+
+describe("migrateButtonTest", () => {
+  it("既存の button test だけを url-encoder 正本へ置換する", () => {
+    const appDir = mkdtempSync(path.join(tmpdir(), "elchika-ui-codemod-"));
+    const testDir = path.join(appDir, "src", "components", "ui", "__tests__");
+    mkdirSync(testDir, { recursive: true });
+    const target = path.join(testDir, "button.test.tsx");
+    writeFileSync(target, "legacy test");
+
+    try {
+      migrateButtonTest(appDir);
+      expect(readFileSync(target, "utf8")).toContain('toHaveClass("bg-destructive-subtle")');
+    } finally {
+      rmSync(appDir, { recursive: true, force: true });
+    }
+  });
+
+  it("button test が無いアプリには新規作成しない", () => {
+    const appDir = mkdtempSync(path.join(tmpdir(), "elchika-ui-codemod-"));
+    const target = path.join(appDir, "src", "components", "ui", "__tests__", "button.test.tsx");
+
+    try {
+      migrateButtonTest(appDir);
+      expect(() => readFileSync(target, "utf8")).toThrow();
+    } finally {
+      rmSync(appDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("ensureComponentDependencies", () => {
+  it("toast があり button が無い場合だけ正本 button を追加する", () => {
+    const appDir = mkdtempSync(path.join(tmpdir(), "elchika-ui-codemod-"));
+    const componentDir = path.join(appDir, "src", "components", "ui");
+    mkdirSync(componentDir, { recursive: true });
+    writeFileSync(path.join(componentDir, "toast.tsx"), "toast");
+
+    try {
+      ensureComponentDependencies(appDir);
+      expect(readFileSync(path.join(componentDir, "button.tsx"), "utf8")).toContain(
+        "export { Button, buttonVariants }",
+      );
+    } finally {
+      rmSync(appDir, { recursive: true, force: true });
+    }
+  });
+
+  it("toast が無い場合は button を追加しない", () => {
+    const appDir = mkdtempSync(path.join(tmpdir(), "elchika-ui-codemod-"));
+    const target = path.join(appDir, "src", "components", "ui", "button.tsx");
+
+    try {
+      ensureComponentDependencies(appDir);
+      expect(() => readFileSync(target, "utf8")).toThrow();
+    } finally {
+      rmSync(appDir, { recursive: true, force: true });
+    }
   });
 });

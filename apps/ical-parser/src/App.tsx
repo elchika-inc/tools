@@ -3,8 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Copy, Trash2, Upload, Download, ChevronLeft, ChevronRight, Calendar, List } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   parse,
   formatDateTime,
@@ -12,6 +10,7 @@ import {
   eventToIcs,
   type ICalEvent,
 } from '@/utils/icalParser';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [input, setInput] = useState('');
@@ -19,8 +18,6 @@ export default function App() {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [selectedEvent, setSelectedEvent] = useState<ICalEvent | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const { toast } = useToast();
-
   const handleParse = () => {
     try {
       const parsed = parse(input);
@@ -33,12 +30,12 @@ export default function App() {
         setCalendarMonth(new Date(firstEvent.dtstart.getFullYear(), firstEvent.dtstart.getMonth(), 1));
       }
 
-      toast({ title: `${parsed.length} item(s) parsed` });
+      toast.add({ title: `${parsed.length} item(s) parsed` });
     } catch (e) {
-      toast({
+      toast.add({
         title: 'Parse failed',
         description: e instanceof Error ? e.message : 'Unknown error',
-        variant: 'destructive',
+        type: "error",
       });
     }
   };
@@ -69,9 +66,9 @@ export default function App() {
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast({ title: 'Copied to clipboard' });
+      toast.add({ title: 'Copied to clipboard' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -147,218 +144,218 @@ export default function App() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">iCalendar Parser</h1>
-          <p className="text-muted-foreground">
-            Parse iCalendar (.ics) files. View events, todos, and journals in list or calendar view. Export individual events.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">iCalendar Parser</h1>
+            <p className="text-muted-foreground">
+              Parse iCalendar (.ics) files. View events, todos, and journals in list or calendar view. Export individual events.
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Input</CardTitle>
-            <CardDescription>Upload an .ics file or paste iCalendar content.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept=".ics,.ical,.ifb,.icalendar"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
-                  <Upload className="h-4 w-4" /> Upload .ics
-                </div>
-              </label>
-            </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Input</CardTitle>
+              <CardDescription>Upload an .ics file or paste iCalendar content.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept=".ics,.ical,.ifb,.icalendar"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                    <Upload className="h-4 w-4" /> Upload .ics
+                  </div>
+                </label>
+              </div>
 
-            <textarea
-              className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-              placeholder={'BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Meeting\nDTSTART:20240115T100000\nDTEND:20240115T110000\nEND:VEVENT\nEND:VCALENDAR'}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
+              <textarea
+                className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                placeholder={'BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Meeting\nDTSTART:20240115T100000\nDTEND:20240115T110000\nEND:VEVENT\nEND:VCALENDAR'}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
 
-            <div className="flex gap-2">
-              <Button type="button" onClick={handleParse} disabled={!input}>
-                Parse
-              </Button>
-              <Button type="button" variant="outline" onClick={clearAll}>
-                <Trash2 className="mr-2 h-4 w-4" /> Clear
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex gap-2">
+                <Button type="button" onClick={handleParse} disabled={!input}>
+                  Parse
+                </Button>
+                <Button type="button" variant="outline" onClick={clearAll}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Clear
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-        {events.length > 0 && (
-          <>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                onClick={() => setViewMode('list')}
-              >
-                <List className="mr-2 h-4 w-4" /> List View
-              </Button>
-              <Button
-                type="button"
-                variant={viewMode === 'calendar' ? 'default' : 'outline'}
-                onClick={() => setViewMode('calendar')}
-              >
-                <Calendar className="mr-2 h-4 w-4" /> Calendar View
-              </Button>
-            </div>
+          {events.length > 0 && (
+            <>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="mr-2 h-4 w-4" /> List View
+                </Button>
+                <Button
+                  type="button"
+                  variant={viewMode === 'calendar' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('calendar')}
+                >
+                  <Calendar className="mr-2 h-4 w-4" /> Calendar View
+                </Button>
+              </div>
 
-            {viewMode === 'list' ? (
-              <div className="grid gap-4">
-                {events.map((event, index) => (
-                  <Card
-                    key={event.uid || index}
-                    className={`cursor-pointer transition-shadow hover:shadow-md ${
-                      selectedEvent === event ? 'ring-2 ring-primary' : ''
-                    }`}
-                    onClick={() => setSelectedEvent(selectedEvent === event ? null : event)}
-                  >
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${getTypeBadgeColor(event.type)}`}
-                            >
-                              {getTypeLabel(event.type)}
-                            </span>
-                            {event.status && (
-                              <span className="text-xs text-muted-foreground">{event.status}</span>
-                            )}
-                          </div>
-                          <h3 className="font-semibold text-lg truncate">{event.summary || '(No title)'}</h3>
-                          <div className="text-sm text-muted-foreground space-y-1 mt-1">
-                            {event.dtstart && (
-                              <p>
-                                {formatDateTime(event.dtstart)}
-                                {event.dtend && ` - ${formatDateTime(event.dtend)}`}
-                              </p>
-                            )}
-                            {event.due && <p>Due: {formatDateTime(event.due)}</p>}
-                            {event.location && <p>Location: {event.location}</p>}
-                            {event.rrule && <p>Recurrence: {formatRRule(event.rrule)}</p>}
-                          </div>
-
-                          {selectedEvent === event && (
-                            <div className="mt-4 space-y-2 text-sm border-t pt-4">
-                              {event.description && (
-                                <div>
-                                  <Label className="font-medium">Description</Label>
-                                  <p className="text-muted-foreground whitespace-pre-wrap">{event.description}</p>
-                                </div>
-                              )}
-                              {event.categories.length > 0 && (
-                                <div>
-                                  <Label className="font-medium">Categories</Label>
-                                  <p className="text-muted-foreground">{event.categories.join(', ')}</p>
-                                </div>
-                              )}
-                              {event.organizer && (
-                                <div>
-                                  <Label className="font-medium">Organizer</Label>
-                                  <p className="text-muted-foreground">{event.organizer}</p>
-                                </div>
-                              )}
-                              {event.uid && (
-                                <div>
-                                  <Label className="font-medium">UID</Label>
-                                  <p className="text-muted-foreground text-xs">{event.uid}</p>
-                                </div>
+              {viewMode === 'list' ? (
+                <div className="grid gap-4">
+                  {events.map((event, index) => (
+                    <Card
+                      key={event.uid || index}
+                      className={`cursor-pointer transition-shadow hover:shadow-md ${
+                        selectedEvent === event ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => setSelectedEvent(selectedEvent === event ? null : event)}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium ${getTypeBadgeColor(event.type)}`}
+                              >
+                                {getTypeLabel(event.type)}
+                              </span>
+                              {event.status && (
+                                <span className="text-xs text-muted-foreground">{event.status}</span>
                               )}
                             </div>
-                          )}
-                        </div>
+                            <h3 className="font-semibold text-lg truncate">{event.summary || '(No title)'}</h3>
+                            <div className="text-sm text-muted-foreground space-y-1 mt-1">
+                              {event.dtstart && (
+                                <p>
+                                  {formatDateTime(event.dtstart)}
+                                  {event.dtend && ` - ${formatDateTime(event.dtend)}`}
+                                </p>
+                              )}
+                              {event.due && <p>Due: {formatDateTime(event.due)}</p>}
+                              {event.location && <p>Location: {event.location}</p>}
+                              {event.rrule && <p>Recurrence: {formatRRule(event.rrule)}</p>}
+                            </div>
 
-                        <div className="flex gap-1 shrink-0">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              copyToClipboard(JSON.stringify(event, null, 2));
-                            }}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleExportEvent(event);
-                            }}
-                          >
-                            <Download className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <Button type="button" variant="outline" size="sm" onClick={prevMonth}>
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <CardTitle>
-                      {calendarMonth.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' })}
-                    </CardTitle>
-                    <Button type="button" variant="outline" size="sm" onClick={nextMonth}>
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-7 gap-px bg-border">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                      <div key={day} className="bg-muted p-2 text-center text-sm font-medium">
-                        {day}
-                      </div>
-                    ))}
-                    {calendarDays.map((day, index) => (
-                      <div
-                        key={index}
-                        className={`bg-background p-2 min-h-[80px] ${
-                          day.isCurrentMonth ? '' : 'opacity-40'
-                        }`}
-                      >
-                        <div className="text-sm font-medium mb-1">{day.date.getDate()}</div>
-                        {day.events.map((event, eIndex) => (
-                          <div
-                            key={eIndex}
-                            className={`text-xs px-1 py-0.5 rounded mb-0.5 truncate cursor-pointer ${getTypeBadgeColor(event.type)}`}
-                            onClick={() => setSelectedEvent(event)}
-                            title={event.summary}
-                          >
-                            {event.summary || '(No title)'}
+                            {selectedEvent === event && (
+                              <div className="mt-4 space-y-2 text-sm border-t pt-4">
+                                {event.description && (
+                                  <div>
+                                    <Label className="font-medium">Description</Label>
+                                    <p className="text-muted-foreground whitespace-pre-wrap">{event.description}</p>
+                                  </div>
+                                )}
+                                {event.categories.length > 0 && (
+                                  <div>
+                                    <Label className="font-medium">Categories</Label>
+                                    <p className="text-muted-foreground">{event.categories.join(', ')}</p>
+                                  </div>
+                                )}
+                                {event.organizer && (
+                                  <div>
+                                    <Label className="font-medium">Organizer</Label>
+                                    <p className="text-muted-foreground">{event.organizer}</p>
+                                  </div>
+                                )}
+                                {event.uid && (
+                                  <div>
+                                    <Label className="font-medium">UID</Label>
+                                    <p className="text-muted-foreground text-xs">{event.uid}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+
+                          <div className="flex gap-1 shrink-0">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copyToClipboard(JSON.stringify(event, null, 2));
+                              }}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportEvent(event);
+                              }}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <Button type="button" variant="outline" size="sm" onClick={prevMonth}>
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <CardTitle>
+                        {calendarMonth.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' })}
+                      </CardTitle>
+                      <Button type="button" variant="outline" size="sm" onClick={nextMonth}>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-7 gap-px bg-border">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                        <div key={day} className="bg-muted p-2 text-center text-sm font-medium">
+                          {day}
+                        </div>
+                      ))}
+                      {calendarDays.map((day, index) => (
+                        <div
+                          key={index}
+                          className={`bg-background p-2 min-h-[80px] ${
+                            day.isCurrentMonth ? '' : 'opacity-40'
+                          }`}
+                        >
+                          <div className="text-sm font-medium mb-1">{day.date.getDate()}</div>
+                          {day.events.map((event, eIndex) => (
+                            <div
+                              key={eIndex}
+                              className={`text-xs px-1 py-0.5 rounded mb-0.5 truncate cursor-pointer ${getTypeBadgeColor(event.type)}`}
+                              onClick={() => setSelectedEvent(event)}
+                              title={event.summary}
+                            >
+                              {event.summary || '(No title)'}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

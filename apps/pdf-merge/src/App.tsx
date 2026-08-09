@@ -2,9 +2,8 @@ import { Download, FileUp, GripVertical, Loader2, Trash2, X } from 'lucide-react
 import { useCallback, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { downloadPdf, formatFileSize, mergePdfs } from '@/utils/pdfMerge';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [files, setFiles] = useState<File[]>([]);
@@ -13,13 +12,11 @@ export default function App() {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
-
   const addFiles = useCallback(
     (newFiles: FileList | File[]) => {
       const pdfFiles = Array.from(newFiles).filter((f) => f.type === 'application/pdf');
       if (pdfFiles.length === 0) {
-        toast({ title: 'PDF files only', variant: 'destructive' });
+        toast.add({ title: 'PDF files only', type: "error" });
         return;
       }
       setFiles((prev) => [...prev, ...pdfFiles]);
@@ -111,10 +108,10 @@ export default function App() {
 
   const handleMerge = useCallback(async () => {
     if (files.length < 2) {
-      toast({
+      toast.add({
         title: 'At least 2 files required',
         description: 'Please add more PDF files to merge.',
-        variant: 'destructive',
+        type: "error",
       });
       return;
     }
@@ -123,134 +120,134 @@ export default function App() {
     try {
       const merged = await mergePdfs(files);
       downloadPdf(merged, 'merged.pdf');
-      toast({ title: 'PDF merged successfully' });
+      toast.add({ title: 'PDF merged successfully' });
     } catch {
-      toast({
+      toast.add({
         title: 'Merge failed',
         description: 'One or more files could not be processed.',
-        variant: 'destructive',
+        type: "error",
       });
     } finally {
       setMerging(false);
     }
   }, [files, toast]);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">PDF Merge</h1>
-          <p className="text-muted-foreground">
-            Merge multiple PDF files into one. Drag to reorder before merging.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">PDF Merge</h1>
+            <p className="text-muted-foreground">
+              Merge multiple PDF files into one. Drag to reorder before merging.
+            </p>
+          </header>
 
-        <main>
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload PDFs</CardTitle>
-            <CardDescription>
-              Drop PDF files here or click to select. All processing is done in your browser.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Drop zone */}
-            <button
-              type="button"
-              className={`w-full border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
-                isDragOver
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted-foreground/25 hover:border-primary/50'
-              }`}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <FileUp className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-              <p className="text-lg font-medium">Drop PDF files here</p>
-              <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                multiple
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-            </button>
+          <main>
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload PDFs</CardTitle>
+              <CardDescription>
+                Drop PDF files here or click to select. All processing is done in your browser.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Drop zone */}
+              <button
+                type="button"
+                className={`w-full border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
+                  isDragOver
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted-foreground/25 hover:border-primary/50'
+                }`}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FileUp className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-lg font-medium">Drop PDF files here</p>
+                <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+              </button>
 
-            {/* File list */}
-            {files.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">
-                    {files.length} file{files.length !== 1 ? 's' : ''} selected
-                  </p>
-                  <Button type="button" variant="ghost" size="sm" onClick={clearAll}>
-                    <Trash2 className="mr-1 h-3 w-3" />
-                    Clear all
-                  </Button>
-                </div>
+              {/* File list */}
+              {files.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">
+                      {files.length} file{files.length !== 1 ? 's' : ''} selected
+                    </p>
+                    <Button type="button" variant="ghost" size="sm" onClick={clearAll}>
+                      <Trash2 className="mr-1 h-3 w-3" />
+                      Clear all
+                    </Button>
+                  </div>
 
-                <ul className="border rounded-lg divide-y list-none m-0 p-0">
-                  {files.map((file, index) => (
-                    <li
-                      key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                      draggable
-                      onDragStart={(e) => handleItemDragStart(e, index)}
-                      onDragOver={(e) => handleItemDragOver(e, index)}
-                      onDrop={(e) => handleItemDrop(e, index)}
-                      onDragEnd={handleItemDragEnd}
-                      className={`flex items-center gap-3 px-3 py-2 transition-colors ${
-                        dragIndex === index ? 'opacity-50' : ''
-                      } ${dragOverIndex === index && dragIndex !== index ? 'bg-primary/5' : ''}`}
-                    >
-                      <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab shrink-0" />
-                      <span className="text-sm text-muted-foreground w-6 text-right shrink-0">
-                        {index + 1}.
-                      </span>
-                      <span className="text-sm truncate flex-1">{file.name}</span>
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {formatFileSize(file.size)}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 shrink-0"
-                        aria-label={`Remove ${file.name}`}
-                        onClick={() => removeFile(index)}
+                  <ul className="border rounded-lg divide-y list-none m-0 p-0">
+                    {files.map((file, index) => (
+                      <li
+                        key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
+                        draggable
+                        onDragStart={(e) => handleItemDragStart(e, index)}
+                        onDragOver={(e) => handleItemDragOver(e, index)}
+                        onDrop={(e) => handleItemDrop(e, index)}
+                        onDragEnd={handleItemDragEnd}
+                        className={`flex items-center gap-3 px-3 py-2 transition-colors ${
+                          dragIndex === index ? 'opacity-50' : ''
+                        } ${dragOverIndex === index && dragIndex !== index ? 'bg-primary/5' : ''}`}
                       >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                        <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab shrink-0" />
+                        <span className="text-sm text-muted-foreground w-6 text-right shrink-0">
+                          {index + 1}.
+                        </span>
+                        <span className="text-sm truncate flex-1">{file.name}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {formatFileSize(file.size)}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0"
+                          aria-label={`Remove ${file.name}`}
+                          onClick={() => removeFile(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-            {/* Actions */}
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button type="button" onClick={handleMerge} disabled={files.length < 2 || merging}>
-                {merging ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Merging...
-                  </>
-                ) : (
-                  <>
-                    <Download className="mr-2 h-4 w-4" />
-                    Merge & Download
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        </main>
+              {/* Actions */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button type="button" onClick={handleMerge} disabled={files.length < 2 || merging}>
+                  {merging ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Merging...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Merge & Download
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          </main>
+        </div>
+        
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }

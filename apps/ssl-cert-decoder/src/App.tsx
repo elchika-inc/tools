@@ -3,14 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Copy, ShieldCheck, ShieldAlert, Trash2 } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   decodeCertificate,
   formatDistinguishedName,
   formatDate,
   type CertificateInfo,
 } from '@/utils/certDecoder';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const SAMPLE_CERT = `-----BEGIN CERTIFICATE-----
 MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw
@@ -48,8 +47,6 @@ export default function App() {
   const [pemInput, setPemInput] = useState('');
   const [certInfo, setCertInfo] = useState<CertificateInfo | null>(null);
   const [error, setError] = useState('');
-  const { toast } = useToast();
-
   const handleDecode = useCallback(() => {
     if (!pemInput.trim()) return;
 
@@ -66,9 +63,9 @@ export default function App() {
   const copyToClipboard = async (text: string, label?: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast({ title: `Copied${label ? `: ${label}` : ''}` });
+      toast.add({ title: `Copied${label ? `: ${label}` : ''}` });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -104,98 +101,98 @@ export default function App() {
       ]
     : [];
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">SSL Certificate Decoder</h1>
-          <p className="text-muted-foreground">
-            PEM形式のSSL証明書をデコードして詳細情報を表示します。
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">SSL Certificate Decoder</h1>
+            <p className="text-muted-foreground">
+              PEM形式のSSL証明書をデコードして詳細情報を表示します。
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>PEM Certificate Input</CardTitle>
-            <CardDescription>
-              PEM形式の証明書を貼り付けてください (-----BEGIN CERTIFICATE----- で始まるもの)。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <textarea
-              aria-label="PEM certificate input"
-              className="flex min-h-[250px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-              placeholder="-----BEGIN CERTIFICATE-----
-MIIFazCCA1OgAwIBAgIRAII...
------END CERTIFICATE-----"
-              value={pemInput}
-              onChange={(e) => setPemInput(e.target.value)}
-            />
-            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-            <div className="flex justify-between">
-              <Button type="button" variant="outline" size="sm" onClick={loadSample}>
-                Load Sample
-              </Button>
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={clearAll}>
-                  <Trash2 className="mr-2 h-4 w-4" /> Clear
-                </Button>
-                <Button type="button" onClick={handleDecode} disabled={!pemInput.trim()}>
-                  <ShieldCheck className="mr-2 h-4 w-4" /> Decode
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {certInfo && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {certInfo.isExpired ? (
-                  <ShieldAlert className="h-5 w-5 text-red-600" />
-                ) : (
-                  <ShieldCheck className="h-5 w-5 text-green-600" />
-                )}
-                Certificate Details
-                <span
-                  className={`text-sm px-2 py-0.5 rounded-full ${
-                    certInfo.isExpired
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-green-100 text-green-800'
-                  }`}
-                >
-                  {certInfo.isExpired ? 'Expired' : 'Valid'}
-                </span>
-              </CardTitle>
+              <CardTitle>PEM Certificate Input</CardTitle>
+              <CardDescription>
+                PEM形式の証明書を貼り付けてください (-----BEGIN CERTIFICATE----- で始まるもの)。
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {infoRows.map((row) => (
-                  <div key={row.label} className="flex items-start gap-3">
-                    <Label className="w-40 text-right text-sm font-medium shrink-0 pt-2">
-                      {row.label}
-                    </Label>
-                    <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono break-all min-h-[36px]">
-                      {row.value}
-                    </code>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      onClick={() => copyToClipboard(row.value, row.label)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+            <CardContent className="space-y-4">
+              <textarea
+                aria-label="PEM certificate input"
+                className="flex min-h-[250px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                placeholder="-----BEGIN CERTIFICATE-----
+  MIIFazCCA1OgAwIBAgIRAII...
+  -----END CERTIFICATE-----"
+                value={pemInput}
+                onChange={(e) => setPemInput(e.target.value)}
+              />
+              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+              <div className="flex justify-between">
+                <Button type="button" variant="outline" size="sm" onClick={loadSample}>
+                  Load Sample
+                </Button>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={clearAll}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Clear
+                  </Button>
+                  <Button type="button" onClick={handleDecode} disabled={!pemInput.trim()}>
+                    <ShieldCheck className="mr-2 h-4 w-4" /> Decode
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+
+          {certInfo && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {certInfo.isExpired ? (
+                    <ShieldAlert className="h-5 w-5 text-red-600" />
+                  ) : (
+                    <ShieldCheck className="h-5 w-5 text-green-600" />
+                  )}
+                  Certificate Details
+                  <span
+                    className={`text-sm px-2 py-0.5 rounded-full ${
+                      certInfo.isExpired
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}
+                  >
+                    {certInfo.isExpired ? 'Expired' : 'Valid'}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {infoRows.map((row) => (
+                    <div key={row.label} className="flex items-start gap-3">
+                      <Label className="w-40 text-right text-sm font-medium shrink-0 pt-2">
+                        {row.label}
+                      </Label>
+                      <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono break-all min-h-[36px]">
+                        {row.value}
+                      </code>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => copyToClipboard(row.value, row.label)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </main>
+        
+      </div>
+  </ToastToaster>;
 }

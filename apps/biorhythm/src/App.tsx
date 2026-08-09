@@ -2,8 +2,8 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/toaster';
 import { calcBiorhythm, calcBiorhythmSeries } from '@/utils/biorhythm';
+import { ToastToaster } from "@/components/ui/toast";
 
 const TODAY = new Date().toISOString().slice(0, 10);
 
@@ -77,61 +77,61 @@ export default function App() {
     draw(series.intellectual, '#22c55e');
   }, [series]);
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Biorhythm</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">生年月日からバイオリズムを計算</p>
+  return <ToastToaster>
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Biorhythm</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">生年月日からバイオリズムを計算</p>
+          </div>
+
+          <Card>
+            <CardContent className="pt-6 grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>生年月日</Label>
+                <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>対象日</Label>
+                <Input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {todayValues && (
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: '身体', value: todayValues.physical, color: 'text-red-600 dark:text-red-400' },
+                  { label: '感情', value: todayValues.emotional, color: 'text-blue-600 dark:text-blue-400' },
+                  { label: '知性', value: todayValues.intellectual, color: 'text-green-600 dark:text-green-400' },
+                ].map((item) => (
+                  <Card key={item.label}>
+                    <CardContent className="pt-4 text-center">
+                      <p className="text-xs text-gray-500">{item.label}</p>
+                      <p className={`text-2xl font-bold ${item.color}`}>{levelLabel(item.value)}</p>
+                      <p className="text-xs text-gray-400">{(item.value * 100).toFixed(0)}%</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm flex gap-4">
+                    <span className="text-red-500">— 身体 (23日)</span>
+                    <span className="text-blue-500">— 感情 (28日)</span>
+                    <span className="text-green-500">— 知性 (33日)</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <canvas ref={canvasRef} width={560} height={160} className="w-full" />
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
-
-        <Card>
-          <CardContent className="pt-6 grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>生年月日</Label>
-              <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>対象日</Label>
-              <Input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {todayValues && (
-          <>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: '身体', value: todayValues.physical, color: 'text-red-600 dark:text-red-400' },
-                { label: '感情', value: todayValues.emotional, color: 'text-blue-600 dark:text-blue-400' },
-                { label: '知性', value: todayValues.intellectual, color: 'text-green-600 dark:text-green-400' },
-              ].map((item) => (
-                <Card key={item.label}>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-xs text-gray-500">{item.label}</p>
-                    <p className={`text-2xl font-bold ${item.color}`}>{levelLabel(item.value)}</p>
-                    <p className="text-xs text-gray-400">{(item.value * 100).toFixed(0)}%</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex gap-4">
-                  <span className="text-red-500">— 身体 (23日)</span>
-                  <span className="text-blue-500">— 感情 (28日)</span>
-                  <span className="text-green-500">— 知性 (33日)</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <canvas ref={canvasRef} width={560} height={160} className="w-full" />
-              </CardContent>
-            </Card>
-          </>
-        )}
+        
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }
