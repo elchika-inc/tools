@@ -4,10 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Plus, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { type FunctionDef, getColor, renderGraph } from '@/utils/graphRenderer';
 import { parse } from '@/utils/expressionParser';
+import { ToastToaster } from "@/components/ui/toast";
 
 const DEFAULT_RANGE = { xMin: -10, xMax: 10, yMin: -10, yMax: 10 };
 const CANVAS_WIDTH = 800;
@@ -23,8 +22,6 @@ export default function App() {
   const [yMax, setYMax] = useState(DEFAULT_RANGE.yMax);
   const [error, setError] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { toast } = useToast();
-
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -111,160 +108,165 @@ export default function App() {
     [zoomBy]
   );
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Graph Plotter</h1>
-          <p className="text-muted-foreground">
-            Plot mathematical functions. Enter y=f(x) expressions like x^2, sin(x), 2*x+1.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Graph Plotter</h1>
+            <p className="text-muted-foreground">
+              Plot mathematical functions. Enter y=f(x) expressions like x^2, sin(x), 2*x+1.
+            </p>
+          </header>
 
-        <div className="grid gap-6 lg:grid-cols-[300px,1fr]">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Functions</CardTitle>
-                <CardDescription>Add expressions to plot.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {functions.map((fn, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <input
-                      type="color"
-                      value={fn.color}
-                      onChange={(e) => updateColor(i, e.target.value)}
-                      className="w-8 h-8 rounded cursor-pointer border-0"
-                      aria-label={`Function ${i + 1} color`}
-                    />
-                    <Input
-                      placeholder="e.g. x^2"
-                      value={fn.expression}
-                      onChange={(e) => updateExpression(i, e.target.value)}
-                      className="flex-1"
-                    />
-                    {functions.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeFunction(i)}
-                        aria-label={`Remove function ${i + 1}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+          <div className="grid gap-6 lg:grid-cols-[300px,1fr]">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Functions</CardTitle>
+                  <CardDescription>Add expressions to plot.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {functions.map((fn, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={fn.color}
+                        onChange={(e) => updateColor(i, e.target.value)}
+                        className="w-8 h-8 rounded cursor-pointer border-0"
+                        aria-label={`Function ${i + 1} color`}
+                      />
+                      <Input
+                        placeholder="e.g. x^2"
+                        value={fn.expression}
+                        onChange={(e) => updateExpression(i, e.target.value)}
+                        className="flex-1"
+                      />
+                      {functions.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeFunction(i)}
+                          aria-label={`Remove function ${i + 1}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addFunction}
+                    className="w-full"
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Add Function
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Range</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="xmin" className="text-xs">
+                        X Min
+                      </Label>
+                      <Input
+                        id="xmin"
+                        type="number"
+                        value={xMin}
+                        onChange={(e) => setXMin(Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="xmax" className="text-xs">
+                        X Max
+                      </Label>
+                      <Input
+                        id="xmax"
+                        type="number"
+                        value={xMax}
+                        onChange={(e) => setXMax(Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ymin" className="text-xs">
+                        Y Min
+                      </Label>
+                      <Input
+                        id="ymin"
+                        type="number"
+                        value={yMin}
+                        onChange={(e) => setYMin(Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ymax" className="text-xs">
+                        Y Max
+                      </Label>
+                      <Input
+                        id="ymax"
+                        type="number"
+                        value={yMax}
+                        onChange={(e) => setYMax(Number(e.target.value))}
+                      />
+                    </div>
                   </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addFunction}
-                  className="w-full"
-                >
-                  <Plus className="mr-2 h-4 w-4" /> Add Function
-                </Button>
-              </CardContent>
-            </Card>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => zoomBy(0.5)}>
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => zoomBy(2)}>
+                      <ZoomOut className="h-4 w-4" />
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={resetRange}>
+                      Reset
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Range</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label htmlFor="xmin" className="text-xs">
-                      X Min
-                    </Label>
-                    <Input
-                      id="xmin"
-                      type="number"
-                      value={xMin}
-                      onChange={(e) => setXMin(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="xmax" className="text-xs">
-                      X Max
-                    </Label>
-                    <Input
-                      id="xmax"
-                      type="number"
-                      value={xMax}
-                      onChange={(e) => setXMax(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="ymin" className="text-xs">
-                      Y Min
-                    </Label>
-                    <Input
-                      id="ymin"
-                      type="number"
-                      value={yMin}
-                      onChange={(e) => setYMin(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="ymax" className="text-xs">
-                      Y Max
-                    </Label>
-                    <Input
-                      id="ymax"
-                      type="number"
-                      value={yMax}
-                      onChange={(e) => setYMax(Number(e.target.value))}
-                    />
-                  </div>
+              <CardContent className="p-4">
+                {error && <p className="text-sm text-destructive mb-2" role="alert">{error}</p>}
+                <div className="border rounded-md overflow-hidden">
+                  <canvas
+                    ref={canvasRef}
+                    width={CANVAS_WIDTH}
+                    height={CANVAS_HEIGHT}
+                    className="w-full h-auto"
+                    onWheel={handleWheel}
+                  />
                 </div>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" size="sm" onClick={() => zoomBy(0.5)}>
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={() => zoomBy(2)}>
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={resetRange}>
-                    Reset
-                  </Button>
+                <div className="flex gap-4 mt-3 flex-wrap">
+                  {functions.map((fn, i) =>
+                    fn.expression.trim() ? (
+                      <div key={i} className="flex items-center gap-1 text-sm">
+                        <span
+                          className="inline-block w-4 h-1 rounded"
+                          style={{ backgroundColor: fn.color }}
+                        />
+                        <span className="text-muted-foreground">y = {fn.expression}</span>
+                      </div>
+                    ) : null
+                  )}
                 </div>
               </CardContent>
             </Card>
           </div>
+        </main>
 
-          <Card>
-            <CardContent className="p-4">
-              {error && <p className="text-sm text-destructive mb-2" role="alert">{error}</p>}
-              <div className="border rounded-md overflow-hidden">
-                <canvas
-                  ref={canvasRef}
-                  width={CANVAS_WIDTH}
-                  height={CANVAS_HEIGHT}
-                  className="w-full h-auto"
-                  onWheel={handleWheel}
-                />
-              </div>
-              <div className="flex gap-4 mt-3 flex-wrap">
-                {functions.map((fn, i) =>
-                  fn.expression.trim() ? (
-                    <div key={i} className="flex items-center gap-1 text-sm">
-                      <span
-                        className="inline-block w-4 h-1 rounded"
-                        style={{ backgroundColor: fn.color }}
-                      />
-                      <span className="text-muted-foreground">y = {fn.expression}</span>
-                    </div>
-                  ) : null
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+      </div>
+  </ToastToaster>;
 }

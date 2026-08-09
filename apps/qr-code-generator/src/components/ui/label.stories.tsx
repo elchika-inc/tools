@@ -3,7 +3,7 @@ import { Input } from './input';
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Label',
+  title: 'qr-code-generator/UI/Label',
   component: Label,
   parameters: {
     layout: 'centered',

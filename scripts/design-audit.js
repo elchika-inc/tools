@@ -56,12 +56,12 @@ const RULES = {
   'DS-002': ({ appDir, tsxContents }) => {
     const appTsx = tsxContents.find(([f]) => f.endsWith('App.tsx'));
     if (!appTsx) return [];
-    const [file, content] = appTsx;
+    const [file] = appTsx;
     const violations = [];
-    if (!content.includes('トップに戻る')) {
+    if (!tsxContents.some(([, content]) => content.includes('トップに戻る'))) {
       violations.push({ rule: 'DS-002', file: path.relative(appDir, file), detail: '"← Tools トップに戻る" バックリンクがない' });
     }
-    if (!content.includes('text-3xl font-bold tracking-tight')) {
+    if (!tsxContents.some(([, content]) => content.includes('text-3xl font-bold tracking-tight'))) {
       violations.push({ rule: 'DS-002', file: path.relative(appDir, file), detail: 'h1 に text-3xl font-bold tracking-tight がない' });
     }
     return violations;

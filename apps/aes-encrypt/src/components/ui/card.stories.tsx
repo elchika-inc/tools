@@ -3,7 +3,7 @@ import { Button } from './button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
 
 const meta = {
-  title: 'UI/Card',
+  title: 'aes-encrypt/UI/Card',
   component: Card,
   parameters: {
     layout: 'centered',

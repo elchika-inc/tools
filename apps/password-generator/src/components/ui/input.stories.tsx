@@ -3,7 +3,7 @@ import { Input } from './input';
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Input',
+  title: 'password-generator/UI/Input',
   component: Input,
   parameters: {
     layout: 'centered',

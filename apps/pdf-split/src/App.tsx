@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   downloadPdf,
   getPageCount,
@@ -13,6 +11,7 @@ import {
   splitByPages,
   splitPdf,
 } from '@/utils/pdfSplit';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 type SplitMode = 'range' | 'individual';
 
@@ -24,14 +23,12 @@ export default function App() {
   const [results, setResults] = useState<Uint8Array[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
     if (selectedFile.type !== 'application/pdf') {
-      toast({ title: 'PDFファイルを選択してください', variant: 'destructive' });
+      toast.add({ title: 'PDFファイルを選択してください', type: "error" });
       return;
     }
 
@@ -42,9 +39,9 @@ export default function App() {
     try {
       const count = await getPageCount(selectedFile);
       setPageCount(count);
-      toast({ title: `PDF読み込み完了: ${count}ページ` });
+      toast.add({ title: `PDF読み込み完了: ${count}ページ` });
     } catch {
-      toast({ title: 'PDFの読み込みに失敗しました', variant: 'destructive' });
+      toast.add({ title: 'PDFの読み込みに失敗しました', type: "error" });
       setFile(null);
       setPageCount(0);
     }
@@ -62,10 +59,10 @@ export default function App() {
       } else {
         const ranges = parsePageRanges(rangeInput, pageCount);
         if (ranges.length === 0) {
-          toast({
+          toast.add({
             title: '有効なページ範囲を入力してください',
             description: '例: 1-3, 5, 7-9',
-            variant: 'destructive',
+            type: "error",
           });
           setIsProcessing(false);
           return;
@@ -74,9 +71,9 @@ export default function App() {
       }
 
       setResults(splitResults);
-      toast({ title: `${splitResults.length}個のPDFに分割しました` });
+      toast.add({ title: `${splitResults.length}個のPDFに分割しました` });
     } catch {
-      toast({ title: '分割に失敗しました', variant: 'destructive' });
+      toast.add({ title: '分割に失敗しました', type: "error" });
     } finally {
       setIsProcessing(false);
     }
@@ -115,157 +112,162 @@ export default function App() {
     return `Part ${index + 1}`;
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">PDF Split</h1>
-          <p className="text-muted-foreground">
-            PDFファイルをページ範囲指定または1ページずつに分割します。
-          </p>
-        </header>
-
-        <main className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>PDFファイル選択</CardTitle>
-            <CardDescription>分割したいPDFファイルをアップロードしてください。</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pdf-upload">PDFファイル</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="pdf-upload"
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={handleFileChange}
-                  className="cursor-pointer"
-                />
-                <Button type="button" variant="outline" onClick={handleClear} disabled={!file}>
-                  <Trash2 className="mr-2 h-4 w-4" /> クリア
-                </Button>
-              </div>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
             </div>
+            <h1 className="text-3xl font-bold tracking-tight">PDF Split</h1>
+            <p className="text-muted-foreground">
+              PDFファイルをページ範囲指定または1ページずつに分割します。
+            </p>
+          </header>
 
-            {file && (
-              <div className="rounded-md bg-muted p-4 space-y-1">
-                <p className="text-sm font-medium">
-                  <FileUp className="inline mr-2 h-4 w-4" />
-                  {file.name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  ページ数: {pageCount} | サイズ: {(file.size / 1024).toFixed(1)} KB
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {file && pageCount > 0 && (
+          <main className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>分割設定</CardTitle>
-              <CardDescription>分割方法を選択してください。</CardDescription>
+              <CardTitle>PDFファイル選択</CardTitle>
+              <CardDescription>分割したいPDFファイルをアップロードしてください。</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>分割モード</Label>
+                <Label htmlFor="pdf-upload">PDFファイル</Label>
                 <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={splitMode === 'range' ? 'default' : 'outline'}
-                    onClick={() => setSplitMode('range')}
-                  >
-                    範囲指定
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={splitMode === 'individual' ? 'default' : 'outline'}
-                    onClick={() => setSplitMode('individual')}
-                  >
-                    1ページずつ
+                  <Input
+                    id="pdf-upload"
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
+                  />
+                  <Button type="button" variant="outline" onClick={handleClear} disabled={!file}>
+                    <Trash2 className="mr-2 h-4 w-4" /> クリア
                   </Button>
                 </div>
               </div>
 
-              {splitMode === 'range' && (
-                <div className="space-y-2">
-                  <Label htmlFor="range-input">ページ範囲</Label>
-                  <Input
-                    id="range-input"
-                    placeholder="例: 1-3, 5, 7-9"
-                    value={rangeInput}
-                    onChange={(e) => setRangeInput(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    カンマ区切りでページ番号または範囲を指定してください (1-{pageCount})
+              {file && (
+                <div className="rounded-md bg-muted p-4 space-y-1">
+                  <p className="text-sm font-medium">
+                    <FileUp className="inline mr-2 h-4 w-4" />
+                    {file.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    ページ数: {pageCount} | サイズ: {(file.size / 1024).toFixed(1)} KB
                   </p>
                 </div>
               )}
-
-              {splitMode === 'individual' && (
-                <p className="text-sm text-muted-foreground">
-                  {pageCount}ページのPDFを1ページずつ{pageCount}個のPDFに分割します。
-                </p>
-              )}
-
-              <Button
-                type="button"
-                onClick={handleSplit}
-                disabled={isProcessing || (splitMode === 'range' && !rangeInput.trim())}
-                className="w-full"
-              >
-                <Scissors className="mr-2 h-4 w-4" />
-                {isProcessing ? '分割中...' : '分割する'}
-              </Button>
             </CardContent>
           </Card>
-        )}
 
-        {results.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>分割結果</CardTitle>
-              <CardDescription>{results.length}個のPDFファイルが生成されました。</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                {results.map((data, index) => (
-                  <div
-                    key={`result-${getRangeLabel(index)}`}
-                    className="flex items-center justify-between rounded-md border p-3"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{getRangeLabel(index)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(data.byteLength / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
+          {file && pageCount > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>分割設定</CardTitle>
+                <CardDescription>分割方法を選択してください。</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>分割モード</Label>
+                  <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(data, index)}
+                      variant={splitMode === 'range' ? 'default' : 'outline'}
+                      onClick={() => setSplitMode('range')}
                     >
-                      <Download className="mr-2 h-4 w-4" /> ダウンロード
+                      範囲指定
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={splitMode === 'individual' ? 'default' : 'outline'}
+                      onClick={() => setSplitMode('individual')}
+                    >
+                      1ページずつ
                     </Button>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {results.length > 1 && (
-                <Button type="button" onClick={handleDownloadAll} className="w-full">
-                  <Download className="mr-2 h-4 w-4" /> すべてダウンロード
+                {splitMode === 'range' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="range-input">ページ範囲</Label>
+                    <Input
+                      id="range-input"
+                      placeholder="例: 1-3, 5, 7-9"
+                      value={rangeInput}
+                      onChange={(e) => setRangeInput(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      カンマ区切りでページ番号または範囲を指定してください (1-{pageCount})
+                    </p>
+                  </div>
+                )}
+
+                {splitMode === 'individual' && (
+                  <p className="text-sm text-muted-foreground">
+                    {pageCount}ページのPDFを1ページずつ{pageCount}個のPDFに分割します。
+                  </p>
+                )}
+
+                <Button
+                  type="button"
+                  onClick={handleSplit}
+                  disabled={isProcessing || (splitMode === 'range' && !rangeInput.trim())}
+                  className="w-full"
+                >
+                  <Scissors className="mr-2 h-4 w-4" />
+                  {isProcessing ? '分割中...' : '分割する'}
                 </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </main>
+              </CardContent>
+            </Card>
+          )}
+
+          {results.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>分割結果</CardTitle>
+                <CardDescription>{results.length}個のPDFファイルが生成されました。</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  {results.map((data, index) => (
+                    <div
+                      key={`result-${getRangeLabel(index)}`}
+                      className="flex items-center justify-between rounded-md border p-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{getRangeLabel(index)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(data.byteLength / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(data, index)}
+                      >
+                        <Download className="mr-2 h-4 w-4" /> ダウンロード
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                {results.length > 1 && (
+                  <Button type="button" onClick={handleDownloadAll} className="w-full">
+                    <Download className="mr-2 h-4 w-4" /> すべてダウンロード
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </main>
+        </div>
+
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }

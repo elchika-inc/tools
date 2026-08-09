@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from './button';
 
 const meta = {
-  title: 'UI/Card',
+  title: 'hash-md5/UI/Card',
   component: Card,
   parameters: {
     layout: 'centered',

@@ -3,7 +3,7 @@ import { Label } from './label';
 import { Input } from './input';
 
 const meta = {
-  title: 'UI/Label',
+  title: 'code-chmod/UI/Label',
   component: Label,
   parameters: {
     layout: 'centered',

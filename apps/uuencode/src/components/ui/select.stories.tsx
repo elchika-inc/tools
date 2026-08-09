@@ -11,7 +11,7 @@ import {
 } from './select';
 
 const meta = {
-  title: 'UI/Select',
+  title: 'uuencode/UI/Select',
   component: Select,
   parameters: {
     layout: 'centered',

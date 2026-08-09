@@ -3,9 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { parseSlides, type Slide } from '@/utils/slideParser';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 // Note: This is a client-side-only tool where users view their own Markdown input.
 // The HTML is generated from the user's own content via renderMarkdown(), not from
@@ -39,23 +38,21 @@ export default function App() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const slideContainerRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-
   const handleParse = useCallback(() => {
     try {
       const parsed = parseSlides(input);
       if (parsed.length === 0) {
-        toast({ title: 'No slides found', variant: 'destructive' });
+        toast.add({ title: 'No slides found', type: "error" });
         return;
       }
       setSlides(parsed);
       setCurrentSlide(0);
-      toast({ title: `${parsed.length} slides parsed` });
+      toast.add({ title: `${parsed.length} slides parsed` });
     } catch (e) {
-      toast({
+      toast.add({
         title: 'Parse failed',
         description: e instanceof Error ? e.message : 'Unknown error',
-        variant: 'destructive',
+        type: "error",
       });
     }
   }, [input, toast]);
@@ -86,7 +83,7 @@ export default function App() {
         setIsFullscreen(false);
       }
     } catch {
-      toast({ title: 'Fullscreen not supported', variant: 'destructive' });
+      toast.add({ title: 'Fullscreen not supported', type: "error" });
     }
   };
 
@@ -118,117 +115,122 @@ export default function App() {
     };
   }, [slides.length, isFullscreen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Markdown to Slides</h1>
-          <p className="text-muted-foreground">
-            Create presentation slides from Markdown. Separate slides with --- (three dashes on their own line).
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Markdown to Slides</h1>
+            <p className="text-muted-foreground">
+              Create presentation slides from Markdown. Separate slides with --- (three dashes on their own line).
+            </p>
+          </header>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Markdown Input</CardTitle>
-              <CardDescription>Use --- to separate slides.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <textarea
-                aria-label="Markdown input"
-                className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                placeholder="# Slide 1&#10;Content here&#10;---&#10;# Slide 2&#10;More content"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-              <Button type="button" onClick={handleParse} disabled={!input} className="w-full">
-                Parse Slides
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Markdown Input</CardTitle>
+                <CardDescription>Use --- to separate slides.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <textarea
+                  aria-label="Markdown input"
+                  className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  placeholder="# Slide 1&#10;Content here&#10;---&#10;# Slide 2&#10;More content"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                />
+                <Button type="button" onClick={handleParse} disabled={!input} className="w-full">
+                  Parse Slides
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Slide Preview</CardTitle>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Slide Preview</CardTitle>
+                    {slides.length > 0 && (
+                      <CardDescription>
+                        Slide {currentSlide + 1} of {slides.length}
+                      </CardDescription>
+                    )}
+                  </div>
                   {slides.length > 0 && (
-                    <CardDescription>
-                      Slide {currentSlide + 1} of {slides.length}
-                    </CardDescription>
+                    <Button type="button" variant="outline" size="icon" onClick={toggleFullscreen}>
+                      {isFullscreen ? (
+                        <Minimize className="h-4 w-4" />
+                      ) : (
+                        <Maximize className="h-4 w-4" />
+                      )}
+                    </Button>
                   )}
                 </div>
-                {slides.length > 0 && (
-                  <Button type="button" variant="outline" size="icon" onClick={toggleFullscreen}>
-                    {isFullscreen ? (
-                      <Minimize className="h-4 w-4" />
-                    ) : (
-                      <Maximize className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div
-                ref={slideContainerRef}
-                className={`${isFullscreen ? 'bg-white p-16 flex items-center justify-center' : ''}`}
-              >
-                {slides.length > 0 ? (
-                  <div
-                    className="min-h-[400px] rounded-lg border bg-white p-8 shadow-sm prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: slides[currentSlide].html }}
-                  />
-                ) : (
-                  <div className="min-h-[400px] rounded-lg border bg-muted p-8 flex items-center justify-center text-muted-foreground">
-                    Parse Markdown to see slides here
-                  </div>
-                )}
-              </div>
-
-              {slides.length > 0 && (
-                <div className="flex items-center justify-between mt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={goToPrev}
-                    disabled={currentSlide === 0}
-                  >
-                    <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-                  </Button>
-
-                  <div className="flex gap-1">
-                    {slides.map((_, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                          index === currentSlide
-                            ? 'bg-primary'
-                            : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                        }`}
-                        onClick={() => setCurrentSlide(index)}
-                        aria-label={`Go to slide ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={goToNext}
-                    disabled={currentSlide === slides.length - 1}
-                  >
-                    Next <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
+              </CardHeader>
+              <CardContent>
+                <div
+                  ref={slideContainerRef}
+                  className={`${isFullscreen ? 'bg-white p-16 flex items-center justify-center' : ''}`}
+                >
+                  {slides.length > 0 ? (
+                    <div
+                      className="min-h-[400px] rounded-lg border bg-white p-8 shadow-sm prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: slides[currentSlide].html }}
+                    />
+                  ) : (
+                    <div className="min-h-[400px] rounded-lg border bg-muted p-8 flex items-center justify-center text-muted-foreground">
+                      Parse Markdown to see slides here
+                    </div>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+
+                {slides.length > 0 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={goToPrev}
+                      disabled={currentSlide === 0}
+                    >
+                      <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+                    </Button>
+
+                    <div className="flex gap-1">
+                      {slides.map((_, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                            index === currentSlide
+                              ? 'bg-primary'
+                              : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                          }`}
+                          onClick={() => setCurrentSlide(index)}
+                          aria-label={`Go to slide ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={goToNext}
+                      disabled={currentSlide === slides.length - 1}
+                    >
+                      Next <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+
+      </div>
+  </ToastToaster>;
 }

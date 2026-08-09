@@ -10,9 +10,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Copy, Trash2, ArrowRight, Download } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { parse, type CsvParseOptions } from '@/utils/csvToJson';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [input, setInput] = useState('');
@@ -21,19 +20,17 @@ export default function App() {
   const [delimiter, setDelimiter] = useState(',');
   const [quoteChar, setQuoteChar] = useState('"');
   const [prettyPrint, setPrettyPrint] = useState(true);
-  const { toast } = useToast();
-
   const handleConvert = () => {
     try {
       const options: CsvParseOptions = { hasHeader, delimiter, quoteChar, prettyPrint };
       const result = parse(input, options);
       setOutput(result);
-      toast({ title: 'Converted successfully' });
+      toast.add({ title: 'Converted successfully' });
     } catch (e) {
-      toast({
+      toast.add({
         title: 'Conversion failed',
         description: e instanceof Error ? e.message : 'Unknown error',
-        variant: 'destructive',
+        type: "error",
       });
     }
   };
@@ -41,9 +38,9 @@ export default function App() {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(output);
-      toast({ title: 'Copied to clipboard' });
+      toast.add({ title: 'Copied to clipboard' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -62,131 +59,136 @@ export default function App() {
     setOutput('');
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">CSV to JSON Converter</h1>
-          <p className="text-muted-foreground">
-            CSV data to JSON format. Supports custom delimiters, quote characters, and header row detection.
-          </p>
-        </header>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Options</CardTitle>
-            <CardDescription>Configure CSV parsing options.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-              <div className="space-y-2">
-                <Label>Header Row</Label>
-                <Select value={hasHeader ? 'yes' : 'no'} onValueChange={(v) => setHasHeader(v === 'yes')}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">First row is header</SelectItem>
-                    <SelectItem value="no">No header row</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Delimiter</Label>
-                <Select value={delimiter} onValueChange={setDelimiter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value=",">Comma (,)</SelectItem>
-                    <SelectItem value="&#9;">Tab</SelectItem>
-                    <SelectItem value=";">Semicolon (;)</SelectItem>
-                    <SelectItem value="|">Pipe (|)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Quote Character</Label>
-                <Select value={quoteChar} onValueChange={setQuoteChar}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='"'>Double Quote (")</SelectItem>
-                    <SelectItem value="'">Single Quote (')</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Format</Label>
-                <Select value={prettyPrint ? 'pretty' : 'compact'} onValueChange={(v) => setPrettyPrint(v === 'pretty')}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pretty">Pretty Print</SelectItem>
-                    <SelectItem value="compact">Compact</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-3xl font-bold tracking-tight">CSV to JSON Converter</h1>
+            <p className="text-muted-foreground">
+              CSV data to JSON format. Supports custom delimiters, quote characters, and header row detection.
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Converter</CardTitle>
-            <CardDescription>Paste CSV data and convert to JSON.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-6 md:grid-cols-[1fr,auto,1fr] items-start">
-              <div className="space-y-2">
-                <Label htmlFor="input">CSV Input</Label>
-                <textarea
-                  id="input"
-                  className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                  placeholder="name,age,city&#10;Alice,30,Tokyo&#10;Bob,25,Osaka"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                />
+          <Card>
+            <CardHeader>
+              <CardTitle>Options</CardTitle>
+              <CardDescription>Configure CSV parsing options.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                <div className="space-y-2">
+                  <Label>Header Row</Label>
+                  <Select value={hasHeader ? 'yes' : 'no'} onValueChange={(v) => setHasHeader(v === 'yes')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">First row is header</SelectItem>
+                      <SelectItem value="no">No header row</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Delimiter</Label>
+                  <Select value={delimiter} onValueChange={setDelimiter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value=",">Comma (,)</SelectItem>
+                      <SelectItem value="&#9;">Tab</SelectItem>
+                      <SelectItem value=";">Semicolon (;)</SelectItem>
+                      <SelectItem value="|">Pipe (|)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Quote Character</Label>
+                  <Select value={quoteChar} onValueChange={setQuoteChar}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='"'>Double Quote (")</SelectItem>
+                      <SelectItem value="'">Single Quote (')</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Format</Label>
+                  <Select value={prettyPrint ? 'pretty' : 'compact'} onValueChange={(v) => setPrettyPrint(v === 'pretty')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pretty">Pretty Print</SelectItem>
+                      <SelectItem value="compact">Compact</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Converter</CardTitle>
+              <CardDescription>Paste CSV data and convert to JSON.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-6 md:grid-cols-[1fr,auto,1fr] items-start">
+                <div className="space-y-2">
+                  <Label htmlFor="input">CSV Input</Label>
+                  <textarea
+                    id="input"
+                    className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    placeholder="name,age,city&#10;Alice,30,Tokyo&#10;Bob,25,Osaka"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-4 justify-center pt-10">
+                  <Button type="button" onClick={handleConvert} disabled={!input}>
+                    Convert <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="output">JSON Output</Label>
+                  <textarea
+                    id="output"
+                    readOnly
+                    className="flex min-h-[300px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    placeholder="JSON output will appear here..."
+                    value={output}
+                  />
+                </div>
               </div>
 
-              <div className="flex flex-col gap-4 justify-center pt-10">
-                <Button type="button" onClick={handleConvert} disabled={!input}>
-                  Convert <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={clearAll}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Clear
+                </Button>
+                <Button type="button" variant="outline" onClick={handleDownload} disabled={!output}>
+                  <Download className="mr-2 h-4 w-4" /> Download
+                </Button>
+                <Button type="button" onClick={copyToClipboard} disabled={!output}>
+                  <Copy className="mr-2 h-4 w-4" /> Copy Result
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </main>
 
-              <div className="space-y-2">
-                <Label htmlFor="output">JSON Output</Label>
-                <textarea
-                  id="output"
-                  readOnly
-                  className="flex min-h-[300px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                  placeholder="JSON output will appear here..."
-                  value={output}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={clearAll}>
-                <Trash2 className="mr-2 h-4 w-4" /> Clear
-              </Button>
-              <Button type="button" variant="outline" onClick={handleDownload} disabled={!output}>
-                <Download className="mr-2 h-4 w-4" /> Download
-              </Button>
-              <Button type="button" onClick={copyToClipboard} disabled={!output}>
-                <Copy className="mr-2 h-4 w-4" /> Copy Result
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-      <Toaster />
-    </div>
-  );
+      </div>
+  </ToastToaster>;
 }

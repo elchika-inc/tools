@@ -8,8 +8,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   Download,
   Loader2,
@@ -33,9 +31,9 @@ import {
   getSupportedMimeType,
   getOutputFileName,
 } from '@/utils/videoRotate';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
-  const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -199,12 +197,12 @@ export default function App() {
       setResultUrl(url);
       setResultSize(blob.size);
       setProgress(1);
-      toast({ title: 'Transform complete' });
+      toast.add({ title: 'Transform complete' });
     } catch (err) {
-      toast({
+      toast.add({
         title: 'Processing failed',
         description: err instanceof Error ? err.message : 'Unknown error',
-        variant: 'destructive',
+        type: "error",
       });
     } finally {
       setProcessing(false);
@@ -219,132 +217,137 @@ export default function App() {
     a.click();
   }, [resultUrl, file, transform]);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Video Rotate</h1>
-          <p className="text-muted-foreground">
-            Rotate and flip video files. Supports 90/180/270 degree rotation and horizontal/vertical
-            flipping.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Video Rotate</h1>
+            <p className="text-muted-foreground">
+              Rotate and flip video files. Supports 90/180/270 degree rotation and horizontal/vertical
+              flipping.
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Video</CardTitle>
-            <CardDescription>Select a video file to rotate or flip.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input type="file" accept="video/*" onChange={handleFileSelect} />
-
-            {videoUrl && (
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                controls
-                onLoadedMetadata={handleVideoLoaded}
-                onTimeUpdate={handleTimeUpdate}
-                className="w-full rounded-md border"
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        {videoUrl && (
           <Card>
             <CardHeader>
-              <CardTitle>Transform</CardTitle>
-              <CardDescription>{getTransformLabel(transform)}</CardDescription>
+              <CardTitle>Upload Video</CardTitle>
+              <CardDescription>Select a video file to rotate or flip.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" onClick={handleRotateCW}>
-                  <RotateCw className="mr-2 h-4 w-4" />
-                  90 CW
-                </Button>
-                <Button type="button" variant="outline" onClick={handleRotateCCW}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  90 CCW
-                </Button>
-                <Button type="button" variant="outline" onClick={handleRotate180}>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  180
-                </Button>
-                <Button type="button" variant="outline" onClick={handleFlipH}>
-                  <FlipHorizontal className="mr-2 h-4 w-4" />
-                  Flip H
-                </Button>
-                <Button type="button" variant="outline" onClick={handleFlipV}>
-                  <FlipVertical className="mr-2 h-4 w-4" />
-                  Flip V
-                </Button>
-                <Button type="button" variant="ghost" onClick={handleReset}>
-                  Reset
-                </Button>
-              </div>
+              <Input type="file" accept="video/*" onChange={handleFileSelect} />
 
-              <div className="border rounded-md p-2 bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-2">Preview</p>
-                <canvas
-                  ref={previewCanvasRef}
-                  className="max-w-full h-auto mx-auto"
-                  style={{ maxHeight: '300px' }}
+              {videoUrl && (
+                <video
+                  ref={videoRef}
+                  src={videoUrl}
+                  controls
+                  onLoadedMetadata={handleVideoLoaded}
+                  onTimeUpdate={handleTimeUpdate}
+                  className="w-full rounded-md border"
                 />
-              </div>
-
-              <Button
-                type="button"
-                onClick={handleProcess}
-                disabled={processing || !file}
-                className="w-full"
-              >
-                {processing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing... {Math.round(progress * 100)}%
-                  </>
-                ) : (
-                  <>
-                    <RotateCw className="mr-2 h-4 w-4" />
-                    Apply Transform
-                  </>
-                )}
-              </Button>
-
-              {processing && (
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: `${Math.round(progress * 100)}%` }}
-                  />
-                </div>
               )}
             </CardContent>
           </Card>
-        )}
 
-        {resultUrl && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Result</CardTitle>
-              <CardDescription>
-                {getTransformLabel(transform)} | Size: {formatFileSize(resultSize)}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <video src={resultUrl} controls className="w-full rounded-md border" />
-              <Button type="button" onClick={handleDownload} className="w-full">
-                <Download className="mr-2 h-4 w-4" />
-                Download Rotated Video
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+          {videoUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Transform</CardTitle>
+                <CardDescription>{getTransformLabel(transform)}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" onClick={handleRotateCW}>
+                    <RotateCw className="mr-2 h-4 w-4" />
+                    90 CW
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleRotateCCW}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    90 CCW
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleRotate180}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    180
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleFlipH}>
+                    <FlipHorizontal className="mr-2 h-4 w-4" />
+                    Flip H
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleFlipV}>
+                    <FlipVertical className="mr-2 h-4 w-4" />
+                    Flip V
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={handleReset}>
+                    Reset
+                  </Button>
+                </div>
 
-        <canvas ref={canvasRef} className="hidden" />
-      </main>
-      <Toaster />
-    </div>
-  );
+                <div className="border rounded-md p-2 bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-2">Preview</p>
+                  <canvas
+                    ref={previewCanvasRef}
+                    className="max-w-full h-auto mx-auto"
+                    style={{ maxHeight: '300px' }}
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleProcess}
+                  disabled={processing || !file}
+                  className="w-full"
+                >
+                  {processing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing... {Math.round(progress * 100)}%
+                    </>
+                  ) : (
+                    <>
+                      <RotateCw className="mr-2 h-4 w-4" />
+                      Apply Transform
+                    </>
+                  )}
+                </Button>
+
+                {processing && (
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${Math.round(progress * 100)}%` }}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {resultUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Result</CardTitle>
+                <CardDescription>
+                  {getTransformLabel(transform)} | Size: {formatFileSize(resultSize)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <video src={resultUrl} controls className="w-full rounded-md border" />
+                <Button type="button" onClick={handleDownload} className="w-full">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Rotated Video
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          <canvas ref={canvasRef} className="hidden" />
+        </main>
+
+      </div>
+  </ToastToaster>;
 }

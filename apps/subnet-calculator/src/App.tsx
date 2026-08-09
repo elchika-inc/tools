@@ -4,18 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import type { SubnetInfo } from '@/utils/subnet';
 import { calculateSubnet, isValidIp } from '@/utils/subnet';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [ipInput, setIpInput] = useState('192.168.1.0');
   const [cidr, setCidr] = useState(24);
   const [result, setResult] = useState<SubnetInfo | null>(null);
   const [error, setError] = useState('');
-  const { toast } = useToast();
-
   const handleCalculate = useCallback(() => {
     if (!isValidIp(ipInput)) {
       setError('Invalid IPv4 address');
@@ -68,9 +65,9 @@ export default function App() {
     ].join('\n');
     try {
       await navigator.clipboard.writeText(text);
-      toast({ title: 'Copied to clipboard' });
+      toast.add({ title: 'Copied to clipboard' });
     } catch {
-      toast({ title: 'Failed to copy', variant: 'destructive' });
+      toast.add({ title: 'Failed to copy', type: "error" });
     }
   };
 
@@ -91,112 +88,117 @@ export default function App() {
       ]
     : [];
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">IPv4 Subnet Calculator</h1>
-          <p className="text-muted-foreground">
-            Calculate subnet details from an IPv4 address and CIDR prefix length.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">IPv4 Subnet Calculator</h1>
+            <p className="text-muted-foreground">
+              Calculate subnet details from an IPv4 address and CIDR prefix length.
+            </p>
+          </header>
 
-        <main className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Input</CardTitle>
-            <CardDescription>Enter an IPv4 address and CIDR prefix.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-[1fr,auto] items-end">
-              <div className="space-y-2">
-                <Label htmlFor="ip-address">IPv4 Address</Label>
-                <Input
-                  id="ip-address"
-                  type="text"
-                  placeholder="192.168.1.0"
-                  value={ipInput}
-                  onChange={(e) => setIpInput(e.target.value)}
-                />
+          <main className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Input</CardTitle>
+              <CardDescription>Enter an IPv4 address and CIDR prefix.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-[1fr,auto] items-end">
+                <div className="space-y-2">
+                  <Label htmlFor="ip-address">IPv4 Address</Label>
+                  <Input
+                    id="ip-address"
+                    type="text"
+                    placeholder="192.168.1.0"
+                    value={ipInput}
+                    onChange={(e) => setIpInput(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cidr-input">CIDR (/{cidr})</Label>
+                  <Input
+                    id="cidr-input"
+                    type="number"
+                    min={0}
+                    max={32}
+                    value={cidr}
+                    onChange={handleCidrInput}
+                    className="w-20"
+                  />
+                </div>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="cidr-input">CIDR (/{cidr})</Label>
-                <Input
-                  id="cidr-input"
-                  type="number"
+                <Label htmlFor="cidr-slider">CIDR Slider</Label>
+                <input
+                  id="cidr-slider"
+                  type="range"
                   min={0}
                   max={32}
                   value={cidr}
-                  onChange={handleCidrInput}
-                  className="w-20"
+                  onChange={handleCidrSlider}
+                  className="w-full accent-primary"
                 />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>/0</span>
+                  <span>/8</span>
+                  <span>/16</span>
+                  <span>/24</span>
+                  <span>/32</span>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cidr-slider">CIDR Slider</Label>
-              <input
-                id="cidr-slider"
-                type="range"
-                min={0}
-                max={32}
-                value={cidr}
-                onChange={handleCidrSlider}
-                className="w-full accent-primary"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>/0</span>
-                <span>/8</span>
-                <span>/16</span>
-                <span>/24</span>
-                <span>/32</span>
-              </div>
-            </div>
+              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
-            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-
-            <div className="flex gap-2">
-              <Button type="button" onClick={handleCalculate}>
-                <Network className="mr-2 h-4 w-4" /> Calculate
-              </Button>
-              <Button type="button" variant="outline" onClick={handleClear}>
-                <Trash2 className="mr-2 h-4 w-4" /> Clear
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {result && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Results</CardTitle>
-                <Button type="button" variant="outline" size="sm" onClick={copyResult}>
-                  <Copy className="mr-2 h-4 w-4" /> Copy
+              <div className="flex gap-2">
+                <Button type="button" onClick={handleCalculate}>
+                  <Network className="mr-2 h-4 w-4" /> Calculate
                 </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <table className="w-full text-sm">
-                  <tbody>
-                    {rows.map((row) => (
-                      <tr key={row.label} className="border-b last:border-b-0">
-                        <td className="px-4 py-3 font-medium text-muted-foreground bg-muted/50 w-[200px]">
-                          {row.label}
-                        </td>
-                        <td className="px-4 py-3 font-mono">{row.value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <Button type="button" variant="outline" onClick={handleClear}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Clear
+                </Button>
               </div>
             </CardContent>
           </Card>
-        )}
-        </main>
+
+          {result && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Results</CardTitle>
+                  <Button type="button" variant="outline" size="sm" onClick={copyResult}>
+                    <Copy className="mr-2 h-4 w-4" /> Copy
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {rows.map((row) => (
+                        <tr key={row.label} className="border-b last:border-b-0">
+                          <td className="px-4 py-3 font-medium text-muted-foreground bg-muted/50 w-[200px]">
+                            {row.label}
+                          </td>
+                          <td className="px-4 py-3 font-mono">{row.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          </main>
+        </div>
+
       </div>
-      <Toaster />
-    </div>
-  );
+  </ToastToaster>;
 }

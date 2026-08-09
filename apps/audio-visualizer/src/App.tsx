@@ -10,8 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/useToast';
 import {
   type ViewMode,
   type ColorScheme,
@@ -23,6 +21,7 @@ import {
   drawSpectrum,
   formatTime,
 } from '@/utils/audioVisualizer';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 type SourceType = 'file' | 'mic';
 
@@ -151,12 +150,12 @@ export default function App() {
       setFileName(file.name);
       setDuration(audioBuffer.duration);
       setSourceType('file');
-      toast({ title: 'File loaded', description: file.name });
+      toast.add({ title: 'File loaded', description: file.name });
     } catch {
-      toast({
+      toast.add({
         title: 'Error',
         description: 'Failed to load audio file.',
-        variant: 'destructive',
+        type: "error",
       });
     }
   }, [cleanup, getAudioContext]);
@@ -220,12 +219,12 @@ export default function App() {
       setDuration(0);
       setHasBuffer(false);
       startVisualization();
-      toast({ title: 'Microphone started' });
+      toast.add({ title: 'Microphone started' });
     } catch {
-      toast({
+      toast.add({
         title: 'Error',
         description: 'Failed to access microphone.',
-        variant: 'destructive',
+        type: "error",
       });
     }
   }, [cleanup, getAudioContext, config.fftSize, startVisualization]);
@@ -251,155 +250,160 @@ export default function App() {
   const showWaveform = config.viewMode === 'waveform' || config.viewMode === 'both';
   const showSpectrum = config.viewMode === 'spectrum' || config.viewMode === 'both';
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Audio Visualizer</h1>
-          <p className="text-muted-foreground">
-            オーディオの波形と周波数スペクトラムをリアルタイムで可視化します
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Audio Visualizer</h1>
+            <p className="text-muted-foreground">
+              オーディオの波形と周波数スペクトラムをリアルタイムで可視化します
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>入力ソース</CardTitle>
-            <CardDescription>ファイルまたはマイクから入力を選択</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-3 items-end">
-              <div className="flex-1">
-                <Label htmlFor="audio-file">オーディオファイル</Label>
-                <Input
-                  id="audio-file"
-                  ref={fileInputRef}
-                  type="file"
-                  accept="audio/*"
-                  onChange={handleFileChange}
-                  className="mt-1"
-                />
+          <Card>
+            <CardHeader>
+              <CardTitle>入力ソース</CardTitle>
+              <CardDescription>ファイルまたはマイクから入力を選択</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <Label htmlFor="audio-file">オーディオファイル</Label>
+                  <Input
+                    id="audio-file"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="audio/*"
+                    onChange={handleFileChange}
+                    className="mt-1"
+                  />
+                </div>
+                <Button type="button" variant="outline" onClick={startMic}>
+                  マイク入力
+                </Button>
               </div>
-              <Button type="button" variant="outline" onClick={startMic}>
-                マイク入力
+              {fileName && (
+                <p className="text-sm text-muted-foreground">
+                  {fileName} ({formatTime(duration)})
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>表示設定</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>表示モード</Label>
+                  <Select
+                    value={config.viewMode}
+                    onValueChange={(v) =>
+                      setConfig((prev) => ({ ...prev, viewMode: v as ViewMode }))
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VIEW_MODE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>カラースキーム</Label>
+                  <Select
+                    value={config.colorScheme}
+                    onValueChange={(v) =>
+                      setConfig((prev) => ({ ...prev, colorScheme: v as ColorScheme }))
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COLOR_SCHEME_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-3">
+            {sourceType === 'file' ? (
+              <Button
+                type="button"
+                onClick={playFile}
+                disabled={!hasBuffer || isPlaying}
+                className="flex-1"
+              >
+                再生
               </Button>
-            </div>
-            {fileName && (
-              <p className="text-sm text-muted-foreground">
-                {fileName} ({formatTime(duration)})
-              </p>
+            ) : (
+              <Button
+                type="button"
+                onClick={startMic}
+                disabled={isPlaying}
+                className="flex-1"
+              >
+                マイク開始
+              </Button>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>表示設定</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>表示モード</Label>
-                <Select
-                  value={config.viewMode}
-                  onValueChange={(v) =>
-                    setConfig((prev) => ({ ...prev, viewMode: v as ViewMode }))
-                  }
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VIEW_MODE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>カラースキーム</Label>
-                <Select
-                  value={config.colorScheme}
-                  onValueChange={(v) =>
-                    setConfig((prev) => ({ ...prev, colorScheme: v as ColorScheme }))
-                  }
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COLOR_SCHEME_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex gap-3">
-          {sourceType === 'file' ? (
-            <Button
-              type="button"
-              onClick={playFile}
-              disabled={!hasBuffer || isPlaying}
-              className="flex-1"
-            >
-              再生
+            <Button type="button" variant="outline" onClick={handleStop} disabled={!isPlaying}>
+              停止
             </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={startMic}
-              disabled={isPlaying}
-              className="flex-1"
-            >
-              マイク開始
-            </Button>
+          </div>
+
+          {isPlaying && sourceType === 'file' && duration > 0 && (
+            <p className="text-sm text-center text-muted-foreground">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </p>
           )}
-          <Button type="button" variant="outline" onClick={handleStop} disabled={!isPlaying}>
-            停止
-          </Button>
-        </div>
 
-        {isPlaying && sourceType === 'file' && duration > 0 && (
-          <p className="text-sm text-center text-muted-foreground">
-            {formatTime(currentTime)} / {formatTime(duration)}
-          </p>
-        )}
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              {showWaveform && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Waveform</p>
+                  <canvas
+                    ref={waveformCanvasRef}
+                    width={800}
+                    height={200}
+                    className="w-full rounded-md bg-gray-900"
+                  />
+                </div>
+              )}
+              {showSpectrum && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Frequency Spectrum</p>
+                  <canvas
+                    ref={spectrumCanvasRef}
+                    width={800}
+                    height={200}
+                    className="w-full rounded-md bg-gray-900"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </main>
 
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            {showWaveform && (
-              <div>
-                <p className="text-sm font-medium mb-2">Waveform</p>
-                <canvas
-                  ref={waveformCanvasRef}
-                  width={800}
-                  height={200}
-                  className="w-full rounded-md bg-gray-900"
-                />
-              </div>
-            )}
-            {showSpectrum && (
-              <div>
-                <p className="text-sm font-medium mb-2">Frequency Spectrum</p>
-                <canvas
-                  ref={spectrumCanvasRef}
-                  width={800}
-                  height={200}
-                  className="w-full rounded-md bg-gray-900"
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
-      <Toaster />
-    </div>
-  );
+      </div>
+  </ToastToaster>;
 }

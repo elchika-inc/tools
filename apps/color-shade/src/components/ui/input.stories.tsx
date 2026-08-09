@@ -3,7 +3,7 @@ import { Input } from './input';
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Input',
+  title: 'color-shade/UI/Input',
   component: Input,
   parameters: {
     layout: 'centered',

@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Copy, Trash2 } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   type Matrix,
   createMatrix,
@@ -18,6 +16,7 @@ import {
   formatMatrix,
   determinantSteps,
 } from '@/utils/matrixCalc';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 type Operation = 'add' | 'subtract' | 'multiply' | 'transpose' | 'determinant' | 'inverse';
 
@@ -108,8 +107,6 @@ export default function App() {
   const [result, setResult] = useState('');
   const [steps, setSteps] = useState<string[]>([]);
   const [showSteps, setShowSteps] = useState(false);
-  const { toast } = useToast();
-
   const needsB = OPERATIONS.find((o) => o.value === operation)?.needsB ?? false;
 
   const resizeMatrix = useCallback((prev: Matrix, newRows: number, newCols: number): Matrix => {
@@ -187,21 +184,21 @@ export default function App() {
       }
 
       setSteps(newSteps);
-      toast({ title: 'Calculated successfully' });
+      toast.add({ title: 'Calculated successfully' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Calculation failed';
       setResult('');
       setSteps([]);
-      toast({ title: 'Error', description: msg, variant: 'destructive' });
+      toast.add({ title: 'Error', description: msg, type: "error" });
     }
   };
 
   const copyResult = async () => {
     try {
       await navigator.clipboard.writeText(result);
-      toast({ title: 'Copied to clipboard' });
+      toast.add({ title: 'Copied to clipboard' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -212,109 +209,114 @@ export default function App() {
     setSteps([]);
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Matrix Calculator</h1>
-          <p className="text-muted-foreground">
-            Perform matrix operations: addition, subtraction, multiplication, transpose,
-            determinant, and inverse.
-          </p>
-        </header>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Operation</CardTitle>
-            <CardDescription>Select an operation and enter matrix values.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-wrap gap-2">
-              {OPERATIONS.map((op) => (
-                <Button
-                  key={op.value}
-                  type="button"
-                  variant={operation === op.value ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setOperation(op.value)}
-                >
-                  {op.label}
-                </Button>
-              ))}
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
             </div>
+            <h1 className="text-3xl font-bold tracking-tight">Matrix Calculator</h1>
+            <p className="text-muted-foreground">
+              Perform matrix operations: addition, subtraction, multiplication, transpose,
+              determinant, and inverse.
+            </p>
+          </header>
 
-            <div className={`grid gap-8 ${needsB ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-md'}`}>
-              <MatrixInput
-                label="Matrix A"
-                rows={rowsA}
-                cols={colsA}
-                matrix={matrixA}
-                onCellChange={handleCellChangeA}
-                onRowsChange={handleRowsAChange}
-                onColsChange={handleColsAChange}
-              />
-              {needsB && (
-                <MatrixInput
-                  label="Matrix B"
-                  rows={rowsB}
-                  cols={colsB}
-                  matrix={matrixB}
-                  onCellChange={handleCellChangeB}
-                  onRowsChange={handleRowsBChange}
-                  onColsChange={handleColsBChange}
-                />
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <Button type="button" onClick={calculate}>
-                Calculate
-              </Button>
-              <Button type="button" variant="outline" onClick={clearAll}>
-                <Trash2 className="mr-2 h-4 w-4" /> Clear
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {result && (
           <Card>
             <CardHeader>
-              <CardTitle>Result</CardTitle>
+              <CardTitle>Operation</CardTitle>
+              <CardDescription>Select an operation and enter matrix values.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <pre className="bg-muted p-4 rounded-md font-mono text-sm whitespace-pre overflow-x-auto">
-                {result}
-              </pre>
-
-              {steps.length > 0 && (
-                <div className="space-y-2">
+            <CardContent className="space-y-6">
+              <div className="flex flex-wrap gap-2">
+                {OPERATIONS.map((op) => (
                   <Button
+                    key={op.value}
                     type="button"
-                    variant="ghost"
+                    variant={operation === op.value ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setShowSteps(!showSteps)}
+                    onClick={() => setOperation(op.value)}
                   >
-                    {showSteps ? 'Hide Steps' : 'Show Steps'}
+                    {op.label}
                   </Button>
-                  {showSteps && (
-                    <pre className="bg-muted/50 p-4 rounded-md font-mono text-xs whitespace-pre-wrap">
-                      {steps.join('\n')}
-                    </pre>
-                  )}
-                </div>
-              )}
+                ))}
+              </div>
 
-              <div className="flex justify-end">
-                <Button type="button" onClick={copyResult}>
-                  <Copy className="mr-2 h-4 w-4" /> Copy Result
+              <div className={`grid gap-8 ${needsB ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-md'}`}>
+                <MatrixInput
+                  label="Matrix A"
+                  rows={rowsA}
+                  cols={colsA}
+                  matrix={matrixA}
+                  onCellChange={handleCellChangeA}
+                  onRowsChange={handleRowsAChange}
+                  onColsChange={handleColsAChange}
+                />
+                {needsB && (
+                  <MatrixInput
+                    label="Matrix B"
+                    rows={rowsB}
+                    cols={colsB}
+                    matrix={matrixB}
+                    onCellChange={handleCellChangeB}
+                    onRowsChange={handleRowsBChange}
+                    onColsChange={handleColsBChange}
+                  />
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button type="button" onClick={calculate}>
+                  Calculate
+                </Button>
+                <Button type="button" variant="outline" onClick={clearAll}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Clear
                 </Button>
               </div>
             </CardContent>
           </Card>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+
+          {result && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Result</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <pre className="bg-muted p-4 rounded-md font-mono text-sm whitespace-pre overflow-x-auto">
+                  {result}
+                </pre>
+
+                {steps.length > 0 && (
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowSteps(!showSteps)}
+                    >
+                      {showSteps ? 'Hide Steps' : 'Show Steps'}
+                    </Button>
+                    {showSteps && (
+                      <pre className="bg-muted/50 p-4 rounded-md font-mono text-xs whitespace-pre-wrap">
+                        {steps.join('\n')}
+                      </pre>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <Button type="button" onClick={copyResult}>
+                    <Copy className="mr-2 h-4 w-4" /> Copy Result
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </main>
+
+      </div>
+  </ToastToaster>;
 }

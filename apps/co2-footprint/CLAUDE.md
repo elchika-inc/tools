@@ -4,8 +4,8 @@ CO2 排出量を計算・可視化するツール。
 
 ## アーキテクチャ
 
-- SPA: React 18 + TypeScript + Vite
-- UI: Tailwind CSS 3.4 + shadcn/ui (Radix UI)
+- SPA: React 19 + TypeScript + Vite
+- UI: Tailwind CSS v4 + elchika-inc/ui (Base UI)
 - デプロイ: Cloudflare Workers
 - 完全クライアントサイド処理(サーバー通信なし)
 

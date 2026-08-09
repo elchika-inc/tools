@@ -3,9 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { createGrid, floodFill, exportToPng, type Tool } from '@/utils/pixelArt';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const PALETTE = [
   '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff',
@@ -22,7 +21,6 @@ export default function App() {
   const [color, setColor] = useState('#000000');
   const [tool, setTool] = useState<Tool>('pencil');
   const [isDrawing, setIsDrawing] = useState(false);
-  const { toast } = useToast();
   const gridRef = useRef<HTMLDivElement>(null);
 
   const handleGridSizeChange = useCallback((value: string) => {
@@ -64,131 +62,136 @@ export default function App() {
     link.download = 'pixel-art.png';
     link.href = dataUrl;
     link.click();
-    toast({ title: 'PNG saved' });
+    toast.add({ title: 'PNG saved' });
   }, [grid, toast]);
 
   const handleClear = useCallback(() => {
     setGrid(createGrid(gridSize));
-    toast({ title: 'Canvas cleared' });
+    toast.add({ title: 'Canvas cleared' });
   }, [gridSize, toast]);
 
   const cellSize = Math.min(Math.floor(512 / gridSize), 40);
 
-  return (
-    <div className="min-h-screen bg-background p-8" onMouseUp={handleMouseUp}>
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Pixel Art Editor</h1>
-          <p className="text-muted-foreground">
-            Grid size, color palette, drawing tools, PNG export
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8" onMouseUp={handleMouseUp}>
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Pixel Art Editor</h1>
+            <p className="text-muted-foreground">
+              Grid size, color palette, drawing tools, PNG export
+            </p>
+          </header>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          <Card className="flex-shrink-0">
-            <CardHeader>
-              <CardTitle>Tools</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Grid Size</Label>
-                <Select value={String(gridSize)} onValueChange={handleGridSizeChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {GRID_SIZES.map((s) => (
-                      <SelectItem key={s} value={String(s)}>
-                        {s} x {s}
-                      </SelectItem>
+          <div className="flex flex-col lg:flex-row gap-6">
+            <Card className="flex-shrink-0">
+              <CardHeader>
+                <CardTitle>Tools</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Grid Size</Label>
+                  <Select value={String(gridSize)} onValueChange={handleGridSizeChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GRID_SIZES.map((s) => (
+                        <SelectItem key={s} value={String(s)}>
+                          {s} x {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tool</Label>
+                  <div className="flex gap-2">
+                    {(['pencil', 'eraser', 'fill'] as Tool[]).map((t) => (
+                      <Button
+                        key={t}
+                        type="button"
+                        variant={tool === t ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setTool(t)}
+                      >
+                        {t === 'pencil' ? 'Pencil' : t === 'eraser' ? 'Eraser' : 'Fill'}
+                      </Button>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  </div>
+                </div>
 
-              <div className="space-y-2">
-                <Label>Tool</Label>
+                <div className="space-y-2">
+                  <Label>Color</Label>
+                  <div className="grid grid-cols-4 gap-1">
+                    {PALETTE.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        className={`w-8 h-8 rounded border-2 ${color === c ? 'border-ring' : 'border-transparent'}`}
+                        style={{ backgroundColor: c }}
+                        onClick={() => setColor(c)}
+                      />
+                    ))}
+                  </div>
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="w-full h-8 cursor-pointer"
+                  />
+                </div>
+
                 <div className="flex gap-2">
-                  {(['pencil', 'eraser', 'fill'] as Tool[]).map((t) => (
-                    <Button
-                      key={t}
-                      type="button"
-                      variant={tool === t ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setTool(t)}
-                    >
-                      {t === 'pencil' ? 'Pencil' : t === 'eraser' ? 'Eraser' : 'Fill'}
-                    </Button>
-                  ))}
+                  <Button type="button" onClick={handleExport} className="flex-1">
+                    Export PNG
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleClear}>
+                    Clear
+                  </Button>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="space-y-2">
-                <Label>Color</Label>
-                <div className="grid grid-cols-4 gap-1">
-                  {PALETTE.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      className={`w-8 h-8 rounded border-2 ${color === c ? 'border-ring' : 'border-transparent'}`}
-                      style={{ backgroundColor: c }}
-                      onClick={() => setColor(c)}
-                    />
-                  ))}
+            <Card className="flex-1">
+              <CardContent className="p-4 flex justify-center">
+                <div
+                  ref={gridRef}
+                  className="inline-grid border border-border select-none"
+                  style={{
+                    gridTemplateColumns: `repeat(${gridSize}, ${cellSize}px)`,
+                  }}
+                  onMouseLeave={() => setIsDrawing(false)}
+                >
+                  {grid.map((row, r) =>
+                    row.map((cellColor, c) => (
+                      <div
+                        key={`${r}-${c}`}
+                        className="border border-border/30 cursor-crosshair"
+                        style={{
+                          width: cellSize,
+                          height: cellSize,
+                          backgroundColor: cellColor,
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleCellDown(r, c);
+                        }}
+                        onMouseEnter={() => handleCellEnter(r, c)}
+                      />
+                    ))
+                  )}
                 </div>
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="w-full h-8 cursor-pointer"
-                />
-              </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
 
-              <div className="flex gap-2">
-                <Button type="button" onClick={handleExport} className="flex-1">
-                  Export PNG
-                </Button>
-                <Button type="button" variant="outline" onClick={handleClear}>
-                  Clear
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="flex-1">
-            <CardContent className="p-4 flex justify-center">
-              <div
-                ref={gridRef}
-                className="inline-grid border border-border select-none"
-                style={{
-                  gridTemplateColumns: `repeat(${gridSize}, ${cellSize}px)`,
-                }}
-                onMouseLeave={() => setIsDrawing(false)}
-              >
-                {grid.map((row, r) =>
-                  row.map((cellColor, c) => (
-                    <div
-                      key={`${r}-${c}`}
-                      className="border border-border/30 cursor-crosshair"
-                      style={{
-                        width: cellSize,
-                        height: cellSize,
-                        backgroundColor: cellColor,
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleCellDown(r, c);
-                      }}
-                      onMouseEnter={() => handleCellEnter(r, c)}
-                    />
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+      </div>
+  </ToastToaster>;
 }

@@ -11,8 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Copy, Download } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import {
   generatePalette,
   exportAsCssVariables,
@@ -20,6 +18,7 @@ import {
   type PaletteColor,
   type PaletteType,
 } from '@/utils/paletteGenerator';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const PALETTE_TYPES: { value: PaletteType; label: string }[] = [
   { value: 'complementary', label: 'Complementary' },
@@ -33,8 +32,6 @@ export default function App() {
   const [baseColor, setBaseColor] = useState('#3366cc');
   const [hexInput, setHexInput] = useState('#3366cc');
   const [paletteType, setPaletteType] = useState<PaletteType>('complementary');
-  const { toast } = useToast();
-
   const palette = isValidHex(baseColor) ? generatePalette(baseColor, paletteType) : [];
 
   const handleColorPickerChange = (value: string) => {
@@ -52,9 +49,9 @@ export default function App() {
   const copyColor = async (color: PaletteColor) => {
     try {
       await navigator.clipboard.writeText(color.hex);
-      toast({ title: `Copied ${color.hex}` });
+      toast.add({ title: `Copied ${color.hex}` });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -62,9 +59,9 @@ export default function App() {
     try {
       const text = palette.map((c) => c.hex).join('\n');
       await navigator.clipboard.writeText(text);
-      toast({ title: 'All colors copied' });
+      toast.add({ title: 'All colors copied' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -72,9 +69,9 @@ export default function App() {
     try {
       const css = exportAsCssVariables(palette);
       await navigator.clipboard.writeText(css);
-      toast({ title: 'CSS variables copied' });
+      toast.add({ title: 'CSS variables copied' });
     } catch {
-      toast({ title: 'Copy failed', variant: 'destructive' });
+      toast.add({ title: 'Copy failed', type: "error" });
     }
   };
 
@@ -86,115 +83,120 @@ export default function App() {
     return luminance > 0.5 ? '#000000' : '#ffffff';
   };
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Color Palette Generator</h1>
-          <p className="text-muted-foreground">
-            Generate color palettes from a base color using color theory harmonies.
-          </p>
-        </header>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Base Color</CardTitle>
-            <CardDescription>Pick a base color and choose a palette type.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="colorPicker">Color Picker</Label>
-                <input
-                  id="colorPicker"
-                  type="color"
-                  value={baseColor}
-                  onChange={(e) => handleColorPickerChange(e.target.value)}
-                  className="h-10 w-full cursor-pointer rounded-md border border-input"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="hexInput">Hex Value</Label>
-                <Input
-                  id="hexInput"
-                  value={hexInput}
-                  onChange={(e) => handleHexInputChange(e.target.value)}
-                  placeholder="#000000"
-                  maxLength={7}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Palette Type</Label>
-                <Select value={paletteType} onValueChange={(v) => setPaletteType(v as PaletteType)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PALETTE_TYPES.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>
-                        {t.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-3xl font-bold tracking-tight">Color Palette Generator</h1>
+            <p className="text-muted-foreground">
+              Generate color palettes from a base color using color theory harmonies.
+            </p>
+          </header>
 
-        {palette.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Generated Palette</CardTitle>
-              <CardDescription>
-                {PALETTE_TYPES.find((t) => t.value === paletteType)?.label} palette ({palette.length}{' '}
-                colors)
-              </CardDescription>
+              <CardTitle>Base Color</CardTitle>
+              <CardDescription>Pick a base color and choose a palette type.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-                {palette.map((color, i) => (
-                  <button
-                    type="button"
-                    key={i}
-                    onClick={() => copyColor(color)}
-                    className="group rounded-lg border overflow-hidden transition-shadow hover:shadow-md cursor-pointer"
-                  >
-                    <div
-                      className="h-24 flex items-center justify-center"
-                      style={{ backgroundColor: color.hex }}
-                    >
-                      <Copy
-                        className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                        style={{ color: getContrastColor(color.hex) }}
-                      />
-                    </div>
-                    <div className="p-3 space-y-1 text-left">
-                      <p className="font-mono text-sm font-medium">{color.hex}</p>
-                      <p className="text-xs text-muted-foreground">
-                        rgb({color.rgb.r}, {color.rgb.g}, {color.rgb.b})
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        hsl({color.hsl.h}, {color.hsl.s}%, {color.hsl.l}%)
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={copyAllColors}>
-                  <Copy className="mr-2 h-4 w-4" /> Copy All
-                </Button>
-                <Button type="button" onClick={exportCss}>
-                  <Download className="mr-2 h-4 w-4" /> Export CSS Variables
-                </Button>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="colorPicker">Color Picker</Label>
+                  <input
+                    id="colorPicker"
+                    type="color"
+                    value={baseColor}
+                    onChange={(e) => handleColorPickerChange(e.target.value)}
+                    className="h-10 w-full cursor-pointer rounded-md border border-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hexInput">Hex Value</Label>
+                  <Input
+                    id="hexInput"
+                    value={hexInput}
+                    onChange={(e) => handleHexInputChange(e.target.value)}
+                    placeholder="#000000"
+                    maxLength={7}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Palette Type</Label>
+                  <Select value={paletteType} onValueChange={(v) => setPaletteType(v as PaletteType)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PALETTE_TYPES.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+
+          {palette.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Generated Palette</CardTitle>
+                <CardDescription>
+                  {PALETTE_TYPES.find((t) => t.value === paletteType)?.label} palette ({palette.length}{' '}
+                  colors)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                  {palette.map((color, i) => (
+                    <button
+                      type="button"
+                      key={i}
+                      onClick={() => copyColor(color)}
+                      className="group rounded-lg border overflow-hidden transition-shadow hover:shadow-md cursor-pointer"
+                    >
+                      <div
+                        className="h-24 flex items-center justify-center"
+                        style={{ backgroundColor: color.hex }}
+                      >
+                        <Copy
+                          className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ color: getContrastColor(color.hex) }}
+                        />
+                      </div>
+                      <div className="p-3 space-y-1 text-left">
+                        <p className="font-mono text-sm font-medium">{color.hex}</p>
+                        <p className="text-xs text-muted-foreground">
+                          rgb({color.rgb.r}, {color.rgb.g}, {color.rgb.b})
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          hsl({color.hsl.h}, {color.hsl.s}%, {color.hsl.l}%)
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t">
+                  <Button type="button" variant="outline" onClick={copyAllColors}>
+                    <Copy className="mr-2 h-4 w-4" /> Copy All
+                  </Button>
+                  <Button type="button" onClick={exportCss}>
+                    <Download className="mr-2 h-4 w-4" /> Export CSS Variables
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </main>
+
+      </div>
+  </ToastToaster>;
 }

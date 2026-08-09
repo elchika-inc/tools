@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Select',
+  title: 'validator-password/UI/Select',
   component: Select,
   parameters: {
     layout: 'centered',

@@ -10,14 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { Calculator } from 'lucide-react';
 import {
   calculateCompoundInterest,
   type CompoundingFrequency,
   type CompoundResult,
 } from '@/utils/compoundInterest';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [principal, setPrincipal] = useState('');
@@ -27,8 +26,6 @@ export default function App() {
   const [monthlyContribution, setMonthlyContribution] = useState('');
   const [result, setResult] = useState<CompoundResult | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { toast } = useToast();
-
   const handleCalculate = () => {
     const p = Number(principal) || 0;
     const r = Number(annualRate);
@@ -36,15 +33,15 @@ export default function App() {
     const mc = Number(monthlyContribution) || 0;
 
     if (p < 0 || isNaN(p)) {
-      toast({ title: '元本を0以上で入力してください', variant: 'destructive' });
+      toast.add({ title: '元本を0以上で入力してください', type: "error" });
       return;
     }
     if (isNaN(r) || r < 0) {
-      toast({ title: '年利を0以上で入力してください', variant: 'destructive' });
+      toast.add({ title: '年利を0以上で入力してください', type: "error" });
       return;
     }
     if (!y || y <= 0) {
-      toast({ title: '運用期間を入力してください', variant: 'destructive' });
+      toast.add({ title: '運用期間を入力してください', type: "error" });
       return;
     }
 
@@ -58,10 +55,10 @@ export default function App() {
       });
       setResult(res);
     } catch (e) {
-      toast({
+      toast.add({
         title: '計算エラー',
         description: e instanceof Error ? e.message : '',
-        variant: 'destructive',
+        type: "error",
       });
     }
   };
@@ -195,168 +192,173 @@ export default function App() {
     ctx.fillText('元本+積立', padding.left + 94, height - 7);
   }, [result]);
 
-  return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <main className="max-w-5xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">複利計算シミュレーター</h1>
-          <p className="text-muted-foreground">
-            元本・利率・期間・積立額から複利運用の成長をシミュレーション。
-          </p>
-        </header>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>入力</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              <div className="space-y-2">
-                <Label htmlFor="principal">元本 (円)</Label>
-                <Input
-                  id="principal"
-                  type="number"
-                  min="0"
-                  placeholder="1000000"
-                  value={principal}
-                  onChange={(e) => setPrincipal(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="rate">年利 (%)</Label>
-                <Input
-                  id="rate"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  placeholder="5.0"
-                  value={annualRate}
-                  onChange={(e) => setAnnualRate(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="years">運用期間 (年)</Label>
-                <Input
-                  id="years"
-                  type="number"
-                  min="1"
-                  placeholder="20"
-                  value={years}
-                  onChange={(e) => setYears(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>複利頻度</Label>
-                <Select
-                  value={frequency}
-                  onValueChange={(v) => setFrequency(v as CompoundingFrequency)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">毎月</SelectItem>
-                    <SelectItem value="quarterly">四半期</SelectItem>
-                    <SelectItem value="yearly">毎年</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="monthly">毎月積立額 (円)</Label>
-                <Input
-                  id="monthly"
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  value={monthlyContribution}
-                  onChange={(e) => setMonthlyContribution(e.target.value)}
-                />
-              </div>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-4 md:p-8">
+        <main className="max-w-5xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
             </div>
-            <Button type="button" onClick={handleCalculate} className="w-full sm:w-auto">
-              <Calculator className="mr-2 h-4 w-4" /> 計算する
-            </Button>
-          </CardContent>
-        </Card>
+            <h1 className="text-3xl font-bold tracking-tight">複利計算シミュレーター</h1>
+            <p className="text-muted-foreground">
+              元本・利率・期間・積立額から複利運用の成長をシミュレーション。
+            </p>
+          </header>
 
-        {result && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>結果</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">最終金額</p>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(result.finalAmount)}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">元本+積立合計</p>
-                    <p className="text-2xl font-bold">
-                      {formatCurrency(result.totalContributions)}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">運用益</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {formatCurrency(result.totalInterest)}
-                    </p>
-                  </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>入力</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="space-y-2">
+                  <Label htmlFor="principal">元本 (円)</Label>
+                  <Input
+                    id="principal"
+                    type="number"
+                    min="0"
+                    placeholder="1000000"
+                    value={principal}
+                    onChange={(e) => setPrincipal(e.target.value)}
+                  />
                 </div>
-              </CardContent>
-            </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="rate">年利 (%)</Label>
+                  <Input
+                    id="rate"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="5.0"
+                    value={annualRate}
+                    onChange={(e) => setAnnualRate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="years">運用期間 (年)</Label>
+                  <Input
+                    id="years"
+                    type="number"
+                    min="1"
+                    placeholder="20"
+                    value={years}
+                    onChange={(e) => setYears(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>複利頻度</Label>
+                  <Select
+                    value={frequency}
+                    onValueChange={(v) => setFrequency(v as CompoundingFrequency)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">毎月</SelectItem>
+                      <SelectItem value="quarterly">四半期</SelectItem>
+                      <SelectItem value="yearly">毎年</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="monthly">毎月積立額 (円)</Label>
+                  <Input
+                    id="monthly"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={monthlyContribution}
+                    onChange={(e) => setMonthlyContribution(e.target.value)}
+                  />
+                </div>
+              </div>
+              <Button type="button" onClick={handleCalculate} className="w-full sm:w-auto">
+                <Calculator className="mr-2 h-4 w-4" /> 計算する
+              </Button>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>成長グラフ</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <canvas ref={canvasRef} className="w-full" style={{ height: '300px' }} />
-              </CardContent>
-            </Card>
+          {result && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>結果</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">最終金額</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {formatCurrency(result.finalAmount)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">元本+積立合計</p>
+                      <p className="text-2xl font-bold">
+                        {formatCurrency(result.totalContributions)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">運用益</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {formatCurrency(result.totalInterest)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>年別推移</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto max-h-96 overflow-y-auto">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-background">
-                      <tr className="border-b">
-                        <th className="text-left py-2 px-2">年</th>
-                        <th className="text-right py-2 px-2">総額</th>
-                        <th className="text-right py-2 px-2">元本+積立</th>
-                        <th className="text-right py-2 px-2">運用益</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {result.yearlySnapshots.map((s) => (
-                        <tr key={s.year} className="border-b">
-                          <td className="py-1 px-2">{s.year}年目</td>
-                          <td className="text-right py-1 px-2 text-blue-600">
-                            {formatCurrency(s.balance)}
-                          </td>
-                          <td className="text-right py-1 px-2">
-                            {formatCurrency(s.totalContributions)}
-                          </td>
-                          <td className="text-right py-1 px-2 text-green-600">
-                            {formatCurrency(s.totalInterest)}
-                          </td>
+              <Card>
+                <CardHeader>
+                  <CardTitle>成長グラフ</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <canvas ref={canvasRef} className="w-full" style={{ height: '300px' }} />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>年別推移</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-background">
+                        <tr className="border-b">
+                          <th className="text-left py-2 px-2">年</th>
+                          <th className="text-right py-2 px-2">総額</th>
+                          <th className="text-right py-2 px-2">元本+積立</th>
+                          <th className="text-right py-2 px-2">運用益</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+                      </thead>
+                      <tbody>
+                        {result.yearlySnapshots.map((s) => (
+                          <tr key={s.year} className="border-b">
+                            <td className="py-1 px-2">{s.year}年目</td>
+                            <td className="text-right py-1 px-2 text-blue-600">
+                              {formatCurrency(s.balance)}
+                            </td>
+                            <td className="text-right py-1 px-2">
+                              {formatCurrency(s.totalContributions)}
+                            </td>
+                            <td className="text-right py-1 px-2 text-green-600">
+                              {formatCurrency(s.totalInterest)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </main>
+
+      </div>
+  </ToastToaster>;
 }

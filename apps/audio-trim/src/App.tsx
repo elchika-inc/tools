@@ -2,8 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { Upload, Play, Square, Download, Trash2 } from 'lucide-react';
 import {
   formatTime,
@@ -14,6 +12,7 @@ import {
   audioBufferToWav,
   generateOutputFilename,
 } from '@/utils/audioTrim';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
@@ -28,9 +27,6 @@ export default function App() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { toast } = useToast();
-
   const getAudioContext = useCallback(() => {
     if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
       audioContextRef.current = new AudioContext();
@@ -75,9 +71,9 @@ export default function App() {
       setStartTime(0);
       setEndTime(decoded.duration);
 
-      toast({ title: 'Audio loaded successfully' });
+      toast.add({ title: 'Audio loaded successfully' });
     } catch {
-      toast({ title: 'Failed to load audio file', variant: 'destructive' });
+      toast.add({ title: 'Failed to load audio file', type: "error" });
     }
   };
 
@@ -99,7 +95,7 @@ export default function App() {
 
     const validation = validateTrimRange(startTime, endTime, duration);
     if (!validation.valid) {
-      toast({ title: validation.error ?? 'Invalid range', variant: 'destructive' });
+      toast.add({ title: validation.error ?? 'Invalid range', type: "error" });
       return;
     }
 
@@ -116,7 +112,7 @@ export default function App() {
       sourceNodeRef.current = source;
       setIsPlaying(true);
     } catch {
-      toast({ title: 'Failed to play preview', variant: 'destructive' });
+      toast.add({ title: 'Failed to play preview', type: "error" });
     }
   }, [audioBuffer, startTime, endTime, duration, getAudioContext, stopPreview, toast]);
 
@@ -125,7 +121,7 @@ export default function App() {
 
     const validation = validateTrimRange(startTime, endTime, duration);
     if (!validation.valid) {
-      toast({ title: validation.error ?? 'Invalid range', variant: 'destructive' });
+      toast.add({ title: validation.error ?? 'Invalid range', type: "error" });
       return;
     }
 
@@ -142,9 +138,9 @@ export default function App() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast({ title: 'Download started' });
+      toast.add({ title: 'Download started' });
     } catch {
-      toast({ title: 'Failed to export audio', variant: 'destructive' });
+      toast.add({ title: 'Failed to export audio', type: "error" });
     } finally {
       setIsProcessing(false);
     }
@@ -164,131 +160,136 @@ export default function App() {
 
   const trimmedDuration = calculateTrimmedDuration(startTime, endTime);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Audio Trim</h1>
-          <p className="text-muted-foreground">
-            Trim audio files with waveform visualization. Select a region, preview, and download.
-          </p>
-        </header>
-
-        {/* File Upload */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Audio</CardTitle>
-            <CardDescription>Select an audio file to trim.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="audio-file-input"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload className="mr-2 h-4 w-4" /> Select File
-              </Button>
-              {fileName && (
-                <span className="text-sm text-muted-foreground truncate">{fileName}</span>
-              )}
-              {audioBuffer && (
-                <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-3xl font-bold tracking-tight">Audio Trim</h1>
+            <p className="text-muted-foreground">
+              Trim audio files with waveform visualization. Select a region, preview, and download.
+            </p>
+          </header>
 
-        {/* Waveform & Controls */}
-        {audioBuffer && (
+          {/* File Upload */}
           <Card>
             <CardHeader>
-              <CardTitle>Trim Editor</CardTitle>
-              <CardDescription>
-                Duration: {formatTime(duration)} | Selected: {formatTime(trimmedDuration)}
-              </CardDescription>
+              <CardTitle>Upload Audio</CardTitle>
+              <CardDescription>Select an audio file to trim.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Waveform Canvas */}
-              <div className="border rounded-md overflow-hidden">
-                <canvas
-                  ref={canvasRef}
-                  className="w-full"
-                  style={{ height: '160px' }}
-                />
-              </div>
-
-              {/* Start Time Slider */}
-              <div className="space-y-2">
-                <Label>Start: {formatTime(startTime)}</Label>
+            <CardContent>
+              <div className="flex items-center gap-4">
                 <input
-                  type="range"
-                  min="0"
-                  max={duration}
-                  step="0.01"
-                  value={startTime}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setStartTime(Math.min(val, endTime - 0.01));
-                  }}
-                  className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                  aria-label="Start Time"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="audio-file-input"
                 />
-              </div>
-
-              {/* End Time Slider */}
-              <div className="space-y-2">
-                <Label>End: {formatTime(endTime)}</Label>
-                <input
-                  type="range"
-                  min="0"
-                  max={duration}
-                  step="0.01"
-                  value={endTime}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setEndTime(Math.max(val, startTime + 0.01));
-                  }}
-                  className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                  aria-label="End Time"
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-4 pt-2">
-                {isPlaying ? (
-                  <Button type="button" variant="destructive" onClick={stopPreview}>
-                    <Square className="mr-2 h-4 w-4" /> Stop Preview
-                  </Button>
-                ) : (
-                  <Button type="button" variant="secondary" onClick={playPreview}>
-                    <Play className="mr-2 h-4 w-4" /> Preview
-                  </Button>
-                )}
                 <Button
                   type="button"
-                  onClick={handleDownload}
-                  disabled={isProcessing}
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <Download className="mr-2 h-4 w-4" />
-                  {isProcessing ? 'Processing...' : 'Download Trimmed'}
+                  <Upload className="mr-2 h-4 w-4" /> Select File
                 </Button>
+                {fileName && (
+                  <span className="text-sm text-muted-foreground truncate">{fileName}</span>
+                )}
+                {audioBuffer && (
+                  <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
-        )}
-      </main>
-      <Toaster />
-    </div>
-  );
+
+          {/* Waveform & Controls */}
+          {audioBuffer && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Trim Editor</CardTitle>
+                <CardDescription>
+                  Duration: {formatTime(duration)} | Selected: {formatTime(trimmedDuration)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Waveform Canvas */}
+                <div className="border rounded-md overflow-hidden">
+                  <canvas
+                    ref={canvasRef}
+                    className="w-full"
+                    style={{ height: '160px' }}
+                  />
+                </div>
+
+                {/* Start Time Slider */}
+                <div className="space-y-2">
+                  <Label>Start: {formatTime(startTime)}</Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration}
+                    step="0.01"
+                    value={startTime}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setStartTime(Math.min(val, endTime - 0.01));
+                    }}
+                    className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
+                    aria-label="Start Time"
+                  />
+                </div>
+
+                {/* End Time Slider */}
+                <div className="space-y-2">
+                  <Label>End: {formatTime(endTime)}</Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration}
+                    step="0.01"
+                    value={endTime}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setEndTime(Math.max(val, startTime + 0.01));
+                    }}
+                    className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
+                    aria-label="End Time"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-4 pt-2">
+                  {isPlaying ? (
+                    <Button type="button" variant="destructive" onClick={stopPreview}>
+                      <Square className="mr-2 h-4 w-4" /> Stop Preview
+                    </Button>
+                  ) : (
+                    <Button type="button" variant="secondary" onClick={playPreview}>
+                      <Play className="mr-2 h-4 w-4" /> Preview
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    onClick={handleDownload}
+                    disabled={isProcessing}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    {isProcessing ? 'Processing...' : 'Download Trimmed'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </main>
+
+      </div>
+  </ToastToaster>;
 }

@@ -8,8 +8,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/useToast';
 import { Download, Loader2, VolumeX } from 'lucide-react';
 import {
   formatFileSize,
@@ -18,9 +16,9 @@ import {
   getOutputFileName,
   calculateSizeReduction,
 } from '@/utils/videoMute';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 export default function App() {
-  const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -118,12 +116,12 @@ export default function App() {
       setResultSize(blob.size);
       setProgress(1);
       video.muted = false;
-      toast({ title: 'Audio removed successfully' });
+      toast.add({ title: 'Audio removed successfully' });
     } catch (err) {
-      toast({
+      toast.add({
         title: 'Processing failed',
         description: err instanceof Error ? err.message : 'Unknown error',
-        variant: 'destructive',
+        type: "error",
       });
     } finally {
       setProcessing(false);
@@ -138,106 +136,111 @@ export default function App() {
     a.click();
   }, [resultUrl, file]);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-4xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Video Mute</h1>
-          <p className="text-muted-foreground">
-            Remove audio from video files. The output contains only the video track with no sound.
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-4xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Video Mute</h1>
+            <p className="text-muted-foreground">
+              Remove audio from video files. The output contains only the video track with no sound.
+            </p>
+          </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Video</CardTitle>
-            <CardDescription>Select a video file to remove audio from.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input type="file" accept="video/*" onChange={handleFileSelect} />
-
-            {videoUrl && (
-              <>
-                <video
-                  ref={videoRef}
-                  src={videoUrl}
-                  controls
-                  onLoadedMetadata={handleVideoLoaded}
-                  className="w-full rounded-md border"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Duration: {formatTime(duration)} | Size: {file ? formatFileSize(file.size) : ''}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {videoUrl && (
           <Card>
             <CardHeader>
-              <CardTitle>Remove Audio</CardTitle>
-              <CardDescription>
-                Re-encodes the video without any audio tracks.
-              </CardDescription>
+              <CardTitle>Upload Video</CardTitle>
+              <CardDescription>Select a video file to remove audio from.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button
-                type="button"
-                onClick={handleMute}
-                disabled={processing || !file}
-                className="w-full"
-              >
-                {processing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing... {Math.round(progress * 100)}%
-                  </>
-                ) : (
-                  <>
-                    <VolumeX className="mr-2 h-4 w-4" />
-                    Remove Audio
-                  </>
-                )}
-              </Button>
+              <Input type="file" accept="video/*" onChange={handleFileSelect} />
 
-              {processing && (
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: `${Math.round(progress * 100)}%` }}
+              {videoUrl && (
+                <>
+                  <video
+                    ref={videoRef}
+                    src={videoUrl}
+                    controls
+                    onLoadedMetadata={handleVideoLoaded}
+                    className="w-full rounded-md border"
                   />
-                </div>
+                  <p className="text-sm text-muted-foreground">
+                    Duration: {formatTime(duration)} | Size: {file ? formatFileSize(file.size) : ''}
+                  </p>
+                </>
               )}
             </CardContent>
           </Card>
-        )}
 
-        {resultUrl && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Result (No Audio)</CardTitle>
-              <CardDescription>
-                Original: {file ? formatFileSize(file.size) : ''} | Output:{' '}
-                {formatFileSize(resultSize)}
-                {file
-                  ? ` | Size reduction: ${calculateSizeReduction(file.size, resultSize)}`
-                  : ''}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <video src={resultUrl} controls className="w-full rounded-md border" />
-              <Button type="button" onClick={handleDownload} className="w-full">
-                <Download className="mr-2 h-4 w-4" />
-                Download Muted Video
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+          {videoUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Remove Audio</CardTitle>
+                <CardDescription>
+                  Re-encodes the video without any audio tracks.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  type="button"
+                  onClick={handleMute}
+                  disabled={processing || !file}
+                  className="w-full"
+                >
+                  {processing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing... {Math.round(progress * 100)}%
+                    </>
+                  ) : (
+                    <>
+                      <VolumeX className="mr-2 h-4 w-4" />
+                      Remove Audio
+                    </>
+                  )}
+                </Button>
 
-        <canvas ref={canvasRef} className="hidden" />
-      </main>
-      <Toaster />
-    </div>
-  );
+                {processing && (
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${Math.round(progress * 100)}%` }}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {resultUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Result (No Audio)</CardTitle>
+                <CardDescription>
+                  Original: {file ? formatFileSize(file.size) : ''} | Output:{' '}
+                  {formatFileSize(resultSize)}
+                  {file
+                    ? ` | Size reduction: ${calculateSizeReduction(file.size, resultSize)}`
+                    : ''}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <video src={resultUrl} controls className="w-full rounded-md border" />
+                <Button type="button" onClick={handleDownload} className="w-full">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Muted Video
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          <canvas ref={canvasRef} className="hidden" />
+        </main>
+
+      </div>
+  </ToastToaster>;
 }

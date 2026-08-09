@@ -1,4 +1,3 @@
-import { useToast } from '@hooks/useToast';
 import { ImageExporter } from '@services/ImageExporter';
 import type { AspectRatioOption, ExportSettings, PixelCrop, PreviewInfo } from '@types';
 import { Download, Loader2 } from 'lucide-react';
@@ -7,6 +6,7 @@ import { AspectRatioSelector } from './AspectRatioSelector';
 import { ExportSettings as ExportSettingsComponent } from './ExportSettings';
 import { PreviewInfo as PreviewInfoComponent } from './PreviewInfo';
 import { Button } from './ui/button';
+import { toast } from "@/components/ui/toast";
 
 interface ExportPanelProps {
   imageSrc: string;
@@ -31,8 +31,6 @@ export function ExportPanel({
 }: ExportPanelProps) {
   const imgRef = useRef<HTMLImageElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { toast } = useToast();
-
   // ImageExporterインスタンスをメモ化（再レンダリングごとに再作成しない）
   const exporter = useMemo(() => new ImageExporter(), []);
 
@@ -44,16 +42,16 @@ export function ExportPanel({
       const result = await exporter.exportImage(imgRef.current, crop, exportSettings);
 
       if (result.success) {
-        toast({
+        toast.add({
           title: '成功',
           description: '画像を保存しました',
-          variant: 'success',
+          type: "success",
         });
       } else {
-        toast({
+        toast.add({
           title: 'エラー',
           description: result.error || 'エクスポートに失敗しました',
-          variant: 'destructive',
+          type: "error",
         });
       }
     } finally {

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Button } from './button';
 
 const meta = {
-  title: 'UI/Button',
+  title: 'pdf-merge/UI/Button',
   component: Button,
   parameters: {
     layout: 'centered',

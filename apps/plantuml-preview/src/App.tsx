@@ -10,13 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/useToast';
 import {
   parsePlantUml,
   generateClassDiagramSvg,
   svgToPngDataUrl,
 } from '@/utils/plantumlParser';
+import { toast, ToastToaster } from "@/components/ui/toast";
 
 const EXAMPLES: Record<string, string> = {
   basic: `@startuml
@@ -104,9 +103,9 @@ export default function App() {
   const handleCopySvg = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(svgOutput);
-      toast({ title: 'SVG copied to clipboard' });
+      toast.add({ title: 'SVG copied to clipboard' });
     } catch {
-      toast({ title: 'Failed to copy SVG', variant: 'destructive' });
+      toast.add({ title: 'Failed to copy SVG', type: "error" });
     }
   }, [svgOutput]);
 
@@ -128,7 +127,7 @@ export default function App() {
       a.download = 'class-diagram.png';
       a.click();
     } catch {
-      toast({ title: 'Failed to export PNG', variant: 'destructive' });
+      toast.add({ title: 'Failed to export PNG', type: "error" });
     }
   }, [svgOutput]);
 
@@ -138,83 +137,88 @@ export default function App() {
     }
   }, []);
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">PlantUML Preview</h1>
-          <p className="text-muted-foreground">
-            UML class diagram from PlantUML-like syntax
-          </p>
-        </header>
+  return <ToastToaster>
+  <div className="min-h-screen bg-background p-8">
+        <main className="max-w-6xl mx-auto space-y-6">
+          <header className="space-y-2">
+            <div className="mb-2">
+              <a href="/" className="text-sm text-primary hover:underline">
+                ← Tools トップに戻る
+              </a>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">PlantUML Preview</h1>
+            <p className="text-muted-foreground">
+              UML class diagram from PlantUML-like syntax
+            </p>
+          </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Input</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Example Templates</Label>
-                <Select onValueChange={handleExampleChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an example..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="basic">Inheritance</SelectItem>
-                    <SelectItem value="patterns">Observer Pattern</SelectItem>
-                    <SelectItem value="service">Service Layer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Class Diagram Syntax</Label>
-                <Textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="class Name { ... }"
-                  className="font-mono min-h-[350px]"
-                />
-              </div>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>class Name &#123; +public -private #protected ~package &#125;</p>
-                <p>interface Name &#123; +method() &#125;</p>
-                <p>A --|&gt; B (extends), A ..|&gt; B (implements)</p>
-                <p>A --&gt; B (assoc), A --o B (aggregation), A --* B (composition)</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Preview</CardTitle>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" size="sm" onClick={handleCopySvg}>
-                    Copy SVG
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={handleDownloadSvg}>
-                    SVG
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={handleDownloadPng}>
-                    PNG
-                  </Button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Input</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Example Templates</Label>
+                  <Select onValueChange={handleExampleChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an example..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="basic">Inheritance</SelectItem>
+                      <SelectItem value="patterns">Observer Pattern</SelectItem>
+                      <SelectItem value="service">Service Layer</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-md p-4 min-h-[350px] bg-white overflow-auto">
-                {/* SVG generated from our parser with XML-escaped content, safe to render */}
-                <div dangerouslySetInnerHTML={{ __html: svgOutput }} />
-              </div>
-              <div className="mt-2 text-xs text-muted-foreground">
-                {diagram.classes.length} classes, {diagram.relations.length} relations
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-      <Toaster />
-    </div>
-  );
+                <div className="space-y-2">
+                  <Label>Class Diagram Syntax</Label>
+                  <Textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="class Name { ... }"
+                    className="font-mono min-h-[350px]"
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>class Name &#123; +public -private #protected ~package &#125;</p>
+                  <p>interface Name &#123; +method() &#125;</p>
+                  <p>A --|&gt; B (extends), A ..|&gt; B (implements)</p>
+                  <p>A --&gt; B (assoc), A --o B (aggregation), A --* B (composition)</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Preview</CardTitle>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={handleCopySvg}>
+                      Copy SVG
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={handleDownloadSvg}>
+                      SVG
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={handleDownloadPng}>
+                      PNG
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md p-4 min-h-[350px] bg-white overflow-auto">
+                  {/* SVG generated from our parser with XML-escaped content, safe to render */}
+                  <div dangerouslySetInnerHTML={{ __html: svgOutput }} />
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {diagram.classes.length} classes, {diagram.relations.length} relations
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+
+      </div>
+  </ToastToaster>;
 }

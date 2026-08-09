@@ -58,10 +58,15 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Calorie Burn Calculator</h1>
+        <header>
+          <div className="mb-2">
+            <a href="/" className="text-sm text-primary hover:underline">
+              ← Tools トップに戻る
+            </a>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Calorie Burn Calculator</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">運動種目別消費カロリー計算（MET値使用）</p>
-        </div>
+        </header>
 
         <Card>
           <CardContent className="pt-6">
