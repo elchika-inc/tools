@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-09-elchika-ui-rollout-design.md`（承認済み。判断に迷ったら spec が正）
 
-## 設計書からの変更点（実測により判明。この計画が正）
+## 実測により確定した方式（spec も同内容に更新済み — 2026-08-09）
 
 設計書は「`fonts.css` を作り `tokens.css` から `@import` する」と書いているが、**この方法では目的を達成できない**ことが実測でわかった。
 
@@ -238,6 +238,9 @@ git commit -m "feat(fonts): IBM Plex を共有配信するフォント生成ス�
 - Modify: `packages/design-tokens-elchika/package.json`（`@fontsource/*` 依存の削除）
 - Modify: `packages/design-tokens-elchika/src/__tests__/upstream-drift.test.ts`（除外条件の更新）
 - Modify: `apps/url-encoder/index.html`（`<link>` の追加）
+- Modify: `scripts/build-all.sh`（コピー時に `dist/fonts` を除外）
+- Modify: `.gitignore`（`apps/*/public/fonts`）
+- Modify: `package.json`（ルートへ `@fontsource/*` を移動）
 
 **Interfaces:**
 - Consumes: Task 1 が出力した `/fonts/fonts.css`
@@ -292,14 +295,13 @@ pnpm install
 絶対パスにするのは、`/url-encoder/` 配下から `/fonts/` を参照するため（相対パスだと
 `/url-encoder/fonts/` を探して 404 になる）。Vite は絶対 URL の外部参照をバンドルしない。
 
-- [ ] **Step 5: dev サーバーで `/fonts/` が解決されることを確認**
+- [ ] **Step 5: dev 用シンボリックリンクと build-all.sh の除外を入れる**
 
-`vp dev` は `apps/url-encoder/public/` を静的配信するが、`/fonts/` はそこに無い。
-**シンボリックリンクで解決する**:
+`vp dev` は `apps/url-encoder/public/` を静的配信するため、そこへリンクを張る:
 
 ```bash
 mkdir -p apps/url-encoder/public
-ln -s ../../../packages/router/public/fonts apps/url-encoder/public/fonts
+ln -sfn ../../../packages/router/public/fonts apps/url-encoder/public/fonts
 ```
 
 `.gitignore` に追記して、生成物であるリンクをコミットしない:
@@ -308,9 +310,22 @@ ln -s ../../../packages/router/public/fonts apps/url-encoder/public/fonts
 apps/*/public/fonts
 ```
 
-（この方式が PR2 で 345 アプリへ機械適用できることを確認する。
-シンボリックリンクが環境で機能しない場合は**止めて報告**し、
-vite の共有設定による解決へ切り替える裁定を仰ぐ）
+**重要（dry-run で実測済み）**: Vite は publicDir の中身を**実体解決して dist へコピーする**。
+このままだと `dist/fonts/` に woff2 一式が入り、Step 6 の「dist 1MB 未満」が自壊し、
+`packages/router/public/<app>/fonts/` として二重配置にもなる。
+そこで `scripts/build-all.sh` のコピー処理（現状 31 行目付近）の直後に
+`dist/fonts` を除去する 1 行を追加する:
+
+```bash
+  cp -r "$app/dist/"* "packages/router/public/$app_name/"
+  rm -rf "packages/router/public/$app_name/fonts"
+```
+
+（`build-all.sh` は既存コードでも `rm -rf` を使っており、スクリプト内の記述として整合する。
+worker がシェルから直接 `rm -rf` を実行するわけではない）
+
+この方式は PR2 で 345 アプリへそのまま横展開できる（リンク作成は機械適用、
+除外は build-all.sh の 1 箇所で全アプリに効く）。
 
 - [ ] **Step 6: ビルドしてサイズ削減を実測**
 
@@ -325,8 +340,10 @@ Expected: exit 0
 ```bash
 node -e "const fs=require('fs');const d='dist/assets';const f=fs.readdirSync(d);const s=f.reduce((a,x)=>a+fs.statSync(d+'/'+x).size,0);console.log(f.length+' ファイル / '+(s/1024/1024).toFixed(2)+' MB')"
 ```
-Expected: **1MB 未満**（移行前は 12MB）。1MB を超えたら woff/woff2 が dist に残っている
-可能性が高いので内訳を調べて報告する。
+Expected: **1MB 未満**（移行前は 12MB）。この probe は `dist/assets` のみを見る。
+`dist/fonts/` はシンボリックリンク由来で別途存在するのが正常（Step 5 のとおり
+`build-all.sh` と Task 3 のコピー時に除外する）。1MB を超えた場合は
+`ls dist/assets` の内訳（woff / woff2 が残っていないか）を調べて報告する。
 
 ```bash
 node -e "const fs=require('fs');const f=fs.readdirSync('dist/assets').find(x=>x.endsWith('.css'));console.log(f+' '+fs.statSync('dist/assets/'+f).size+' bytes')"
@@ -393,7 +410,7 @@ pnpm exec vp check apps/url-encoder/index.html packages/design-tokens-elchika/sr
 `.html` を対象外として扱う場合はリストから外し、その旨を申告する）
 
 ```bash
-git add apps/url-encoder/index.html packages/design-tokens-elchika package.json pnpm-lock.yaml .gitignore
+git add apps/url-encoder/index.html packages/design-tokens-elchika package.json pnpm-lock.yaml .gitignore scripts/build-all.sh
 git commit -m "feat(url-encoder): フォントを共有配信 /fonts/fonts.css へ移行"
 ```
 
@@ -419,6 +436,22 @@ git rm -r -q packages/router/public/url-encoder
 ```bash
 cp -R apps/url-encoder/dist packages/router/public/url-encoder
 ```
+
+シンボリックリンク由来の `fonts` が入るため除去する（`/fonts/` は
+`packages/router/public/fonts/` から配信されるので、アプリ配下には不要）:
+
+```bash
+git rm -r -q --ignore-unmatch --cached packages/router/public/url-encoder/fonts
+```
+
+```bash
+node -e "const fs=require('fs');fs.rmSync('packages/router/public/url-encoder/fonts',{recursive:true,force:true});console.log('removed')"
+```
+
+```bash
+ls packages/router/public/url-encoder/
+```
+Expected: `assets` と `index.html` のみ（`fonts` が無いこと）
 
 ```bash
 git add packages/router/public/url-encoder
@@ -522,3 +555,14 @@ Expected: 346/346 正常。実行後に `git checkout -- .docs/health-check-resu
 11. 変更ファイルが `scripts/` / `packages/design-tokens-elchika/` /
     `packages/router/public/{fonts,url-encoder}/` / `apps/url-encoder/` /
     `docs/superpowers/` / ルート `package.json` / `pnpm-lock.yaml` / `.gitignore` のみ
+12. `packages/router/public/url-encoder/` に `fonts` ディレクトリが**存在しない**
+    （フォントは `packages/router/public/fonts/` の 1 セットのみ）
+
+## PR2 の計画について
+
+PR2（345アプリ展開）の実装計画は、**PR1 の実測値が出てから**作成する。
+PR1 で確定する次の値が PR2 の期待値を決めるため:
+
+- 1 アプリあたりの dist サイズ（`public/` 全体の見積もりの基礎）
+- シンボリックリンク + `build-all.sh` 除外の組合せが機械適用できること
+- 共有フォント配信が本番で機能すること

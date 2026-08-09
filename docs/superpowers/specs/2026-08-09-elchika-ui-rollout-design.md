@@ -123,28 +123,50 @@ main checkout の `node_modules` が lockfile と未同期なだけで、コー�
 
 ## PR1: フォント配信の共有化（基盤）
 
+### 実測により確定した方式（2026-08-09 dry-run 実施。当初案から2点変更）
+
+**変更1: CSS の `@import` ではなく `index.html` の `<link>` で読む。**
+
+当初案は `fonts.css` を作り `tokens.css` から `@import` する方式だったが、
+**Vite / Tailwind は `@import` をビルド時にインライン化する**ため、各アプリの CSS は
+566KB のまま変わらず目的を達成できない。現行 url-encoder の CSS（565,701 バイト）に
+`@font-face` が展開されている事実がその実証にあたる。
+
+採用する方式: `public/fonts/fonts.css` を各アプリの `index.html` から
+`<link rel="stylesheet" href="/fonts/fonts.css">` で参照する。絶対 URL の外部参照は
+Vite がバンドルしないため CSS は 30KB 台へ戻り、フォント定義はドメイン全体で
+1 回だけ読まれる（ブラウザキャッシュも共有される）。
+配布 `tokens.css` へのフォント import は**削除**し、局所編集は「無し」の状態にする。
+
+**変更2: woff フォールバックを配信しない。**
+
+現行 url-encoder の assets 内訳（実測）は `.woff` 380 個 4.97MB / `.woff2` 378 個 4.48MB /
+`.css` 0.54MB / `.js` 0.26MB。`.woff` は woff2 のフォールバックでモダンブラウザでは
+一切使われないため、**woff2 のみを配信対象とする**（これだけで約 5MB 削減）。
+
+**dev サーバーでの `/fonts/` 解決**: `apps/<app>/public/fonts` を
+`packages/router/public/fonts` へのシンボリックリンクにすると dev では解決されるが、
+**Vite は publicDir の中身を実体解決して dist へコピーする**（dry-run で確認。
+dist に fonts 一式が入り「dist 1MB 未満」の条件が自壊する）。
+そこで **`scripts/build-all.sh` のコピー処理で `dist/fonts` を除外する**。
+これにより dev はフォントが効き、`packages/router/public/<app>/` には二重配置されない。
+
 ### 変更内容
 
-1. `packages/router/public/fonts/` に IBM Plex 一式（woff2）を1セット配置
-2. `packages/design-tokens-elchika/fonts.css` を**新規作成**し、`@font-face` を
-   絶対パス `/fonts/...` 参照で定義する
-3. `packages/design-tokens-elchika/design-system/tokens.css` の局所編集を、
-   パイロットで入れた 9 行の `@fontsource/...` import から
-   **`@import "../fonts.css";` の 1 行**へ置き換える
-
-   → 配布物への編集を 1 行に留めることで、`upstream-drift.test.ts` の除外条件
-   （`isFontImport`）が単純なまま保たれる。`@font-face` 定義そのものを配布ファイルへ
-   書き込む方式は取らない（除外条件が複雑化し drift 検知が形骸化するため）
-
-4. `@fontsource/*` 依存を `packages/design-tokens-elchika/package.json` から削除
-5. **dev サーバー対応**: 各アプリの `vite.config.ts` は触らない方針のため、
-   共有 vite 設定またはシンボリックリンクで dev 時に `/fonts/` を解決させる。
-   具体手段は PR1 の実装時に dry-run して確定する（dev でフォントが 404 になる状態は許容しない）
-6. url-encoder をこの方式へ揃え直す
+1. `scripts/build-fonts.js` を新規作成し、fontsource から woff2 と `@font-face` を抽出して
+   `packages/router/public/fonts/`（woff2 群 + `fonts.css`）へ出力する
+2. `packages/design-tokens-elchika/design-system/tokens.css` から
+   パイロットで入れた 9 行の `@fontsource/...` import を**削除**する
+3. `upstream-drift.test.ts` の除外条件を「upstream の `fonts.googleapis.com` 行のみ」に更新する
+4. `@fontsource/*` 依存を `packages/design-tokens-elchika/package.json` から
+   リポジトリルートの devDependencies へ移す（生成スクリプトが読むため）
+5. `apps/url-encoder/index.html` に `<link rel="stylesheet" href="/fonts/fonts.css" />` を追加
+6. `apps/url-encoder/public/fonts` をシンボリックリンクとして作成し `.gitignore` に追加
+7. `scripts/build-all.sh` のコピー処理で `dist/fonts` を除外する
 
 ### PR1 の完了条件
 
-1. url-encoder の build 後サイズが **12MB → 1MB 未満**（実測して記録）
+1. url-encoder の build 後サイズが **12MB → 1MB 未満**（`dist/fonts` を除いた値。実測して記録）
 2. url-encoder の CSS が **566KB → 50KB 未満**（`@font-face` が外部化されたことの確認）
 3. `pnpm exec vp test apps/url-encoder` が exit 0
 4. `pnpm exec vp test packages/design-tokens-elchika`（drift テスト）が exit 0
