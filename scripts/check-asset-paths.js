@@ -103,7 +103,7 @@ function checkBuildOutput() {
     return violations;
   }
 
-  for (const app of listDirs(PUBLIC_DIR)) {
+  for (const app of listDirs(PUBLIC_DIR).filter(name => name !== 'fonts')) {
     const htmlPath = path.join(PUBLIC_DIR, app, 'index.html');
     const rel = `packages/router/public/${app}/index.html`;
 
@@ -124,6 +124,13 @@ function checkBuildOutput() {
       if (/^https?:\/\//.test(ref)) continue; // 外部 CDN は対象外
 
       if (ref.startsWith('/')) {
+        if (ref.startsWith('/fonts/')) {
+          const sharedAssetPath = path.join(PUBLIC_DIR, ref.slice(1));
+          if (!fs.existsSync(sharedAssetPath)) {
+            violations.push({ file: rel, issue: `共有フォントの参照先が存在しない "${ref}"` });
+          }
+          continue;
+        }
         violations.push({ file: rel, issue: `絶対パス参照 "${ref}" （./ 相対でなければ 404 になる）` });
         continue;
       }
@@ -153,7 +160,9 @@ function main() {
 
   if (!configOnly) {
     const buildViolations = checkBuildOutput();
-    const outCount = fs.existsSync(PUBLIC_DIR) ? listDirs(PUBLIC_DIR).length : 0;
+    const outCount = fs.existsSync(PUBLIC_DIR)
+      ? listDirs(PUBLIC_DIR).filter(name => name !== 'fonts').length
+      : 0;
     console.log(`  ビルド成果物   : ${outCount} アプリを検査、違反 ${buildViolations.length} 件`);
     violations = violations.concat(buildViolations);
   }

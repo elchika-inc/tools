@@ -30,6 +30,7 @@ for app in apps/*/; do
   mkdir -p "packages/router/public/$app_name"
   cp -r "$app/dist/"* "packages/router/public/$app_name/"
   rm -rf "packages/router/public/$app_name/fonts"
+  node "$(dirname "$0")/fix-font-link.js" "packages/router/public/$app_name"
 done
 
 echo "All apps built successfully!"
