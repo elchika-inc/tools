@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Tailwind v3 → v4 + @tools/design-tokens への一括変換（SP2）
+ * Tailwind v3 → v4 + @tools/design-tokens-elchika への一括変換（SP2）
  *
  * 手順の正本: .docs/plans/tailwind-v4-migration-guide.md
  *
  * 設計方針:
- * - 冪等: 移行済みアプリは skip する（index.css の @tools/design-tokens で判定）
+ * - 冪等: 移行済みアプリは skip する（index.css の @tools/design-tokens-elchika で判定）
  * - fail-closed: 既定形と一致しないファイルは変換せず、理由を出して exit 1 にする。
  *   「たぶん大丈夫」で書き換えると、カスタム CSS を黙って捨てる事故になる
  * - 側面隔離: 1 アプリの失敗で全体を止めない。失敗を集約して最後に報告する
@@ -24,7 +24,7 @@ const REPO_ROOT = path.join(__dirname, "..");
 const APPS_DIR = path.join(REPO_ROOT, "apps");
 
 /** 移行後の index.css の全内容 */
-const MIGRATED_INDEX_CSS = `@import "@tools/design-tokens";\n`;
+const MIGRATED_INDEX_CSS = `@import "@tools/design-tokens-elchika";\n`;
 
 /**
  * v3 既定形 index.css の SHA-256。
@@ -69,14 +69,15 @@ function sha256(source) {
 function isMigrated(appDir) {
   const css = read(path.join(appDir, "src", "index.css"));
   if (css === null) return false;
-  return /^\s*@import\s+["']@tools\/design-tokens["']\s*;/m.test(css);
+  return /^\s*@import\s+["']@tools\/design-tokens-elchika["']\s*;/m.test(css);
 }
 
 /** package.json を v4 構成へ書き換えた文字列を返す */
 function migratePackageJson(source) {
   const pkg = JSON.parse(source);
   pkg.dependencies = pkg.dependencies || {};
-  pkg.dependencies["@tools/design-tokens"] = "workspace:*";
+  delete pkg.dependencies["@tools/design-tokens"];
+  pkg.dependencies["@tools/design-tokens-elchika"] = "workspace:*";
   pkg.dependencies = Object.fromEntries(
     Object.entries(pkg.dependencies).sort(([left], [right]) => left.localeCompare(right)),
   );

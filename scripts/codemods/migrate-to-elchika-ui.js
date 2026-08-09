@@ -19,7 +19,7 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(SCRIPT_DIR, "../..");
 const APPS_DIR = path.join(ROOT_DIR, "apps");
 const REFERENCE_APP = path.join(APPS_DIR, "url-encoder");
-const EXCLUDED_APPS = new Set(["home", "url-encoder"]);
+const EXCLUDED_APPS = new Set(["url-encoder"]);
 const FONT_LINK = '    <link rel="stylesheet" href="/fonts/fonts.css" />';
 const FONT_LINK_TARGET = "../../../packages/router/public/fonts";
 
