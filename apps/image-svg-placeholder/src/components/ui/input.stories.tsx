@@ -3,7 +3,7 @@ import { Input } from './input';
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Input',
+  title: 'image-svg-placeholder/UI/Input',
   component: Input,
   parameters: {
     layout: 'centered',

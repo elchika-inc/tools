@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Button } from './button';
 
 const meta = {
-  title: 'UI/Button',
+  title: 'color-invert/UI/Button',
   component: Button,
   parameters: {
     layout: 'centered',

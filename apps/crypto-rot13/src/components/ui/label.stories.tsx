@@ -3,7 +3,7 @@ import { Label } from './label';
 import { Input } from './input';
 
 const meta = {
-  title: 'UI/Label',
+  title: 'crypto-rot13/UI/Label',
   component: Label,
   parameters: {
     layout: 'centered',

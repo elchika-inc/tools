@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Select',
+  title: 'encode-base64-file/UI/Select',
   component: Select,
   parameters: {
     layout: 'centered',

@@ -3,7 +3,7 @@ import { Input } from './input';
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Input',
+  title: 'fuel-cost-calculator/UI/Input',
   component: Input,
   parameters: {
     layout: 'centered',

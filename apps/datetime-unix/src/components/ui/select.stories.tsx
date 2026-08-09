@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Select',
+  title: 'datetime-unix/UI/Select',
   component: Select,
   parameters: {
     layout: 'centered',

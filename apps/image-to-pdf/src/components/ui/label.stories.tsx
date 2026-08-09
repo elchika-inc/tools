@@ -3,7 +3,7 @@ import { Input } from './input';
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Label',
+  title: 'image-to-pdf/UI/Label',
   component: Label,
   parameters: {
     layout: 'centered',

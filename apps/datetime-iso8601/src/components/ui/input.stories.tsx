@@ -3,7 +3,7 @@ import { Input } from './input';
 import { Label } from './label';
 
 const meta = {
-  title: 'UI/Input',
+  title: 'datetime-iso8601/UI/Input',
   component: Input,
   parameters: {
     layout: 'centered',

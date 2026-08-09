@@ -11,7 +11,7 @@ import {
 } from './select';
 
 const meta = {
-  title: 'UI/Select',
+  title: 'handwriting-converter/UI/Select',
   component: Select,
   parameters: {
     layout: 'centered',
