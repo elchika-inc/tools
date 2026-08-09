@@ -29,6 +29,7 @@ for app in apps/*/; do
   rm -rf "packages/router/public/$app_name"
   mkdir -p "packages/router/public/$app_name"
   cp -r "$app/dist/"* "packages/router/public/$app_name/"
+  rm -rf "packages/router/public/$app_name/fonts"
 done
 
 echo "All apps built successfully!"
