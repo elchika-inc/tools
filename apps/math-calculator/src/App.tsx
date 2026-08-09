@@ -87,7 +87,7 @@ export default function App() {
                     onChange={(e) => setExpression(e.target.value)}
                     placeholder="2 + 3 * 4"
                     aria-label="数式入力"
-                    className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-lg font-mono text-right ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-lg font-mono text-right focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   />
                   <div className="flex items-center justify-between">
                     {result.error ? (

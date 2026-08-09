@@ -97,7 +97,7 @@ export default function App() {
                   <Label htmlFor="input">Protobuf Input</Label>
                   <textarea
                     id="input"
-                    className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder={'syntax = "proto3";\n\nmessage User {\n  string name = 1;\n  int32 age = 2;\n  repeated string tags = 3;\n  bool active = 4;\n}'}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -115,7 +115,7 @@ export default function App() {
                   <textarea
                     id="output"
                     readOnly
-                    className="flex min-h-[400px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[400px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder="JSON output will appear here..."
                     value={output}
                   />

@@ -72,7 +72,7 @@ export default function App() {
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     placeholder="検索..."
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   />
                 </div>
                 <div className="space-y-2">
@@ -83,7 +83,7 @@ export default function App() {
                     value={replaceValue}
                     onChange={(e) => setReplaceValue(e.target.value)}
                     placeholder="置換..."
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   />
                 </div>
                 <div className="space-y-2">
@@ -134,7 +134,7 @@ export default function App() {
                   <Label htmlFor="input">Input</Label>
                   <textarea
                     id="input"
-                    className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder="ここにテキストを入力..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -145,7 +145,7 @@ export default function App() {
                   <textarea
                     id="output"
                     readOnly
-                    className="flex min-h-[200px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[200px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder="置換結果がここに表示されます..."
                     value={result.text}
                   />

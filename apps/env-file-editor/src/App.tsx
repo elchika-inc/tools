@@ -95,7 +95,7 @@ export default function App() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <textarea
-                      className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                      className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                       placeholder={'# Paste .env content here\nDATABASE_URL=postgres://...\nAPI_KEY=your-key'}
                       value={rawInput}
                       onChange={(e) => setRawInput(e.target.value)}
@@ -201,7 +201,7 @@ export default function App() {
                   </CardHeader>
                   <CardContent>
                     <textarea
-                      className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                      className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                       placeholder="Paste first .env file..."
                       value={compareA}
                       onChange={(e) => setCompareA(e.target.value)}
@@ -214,7 +214,7 @@ export default function App() {
                   </CardHeader>
                   <CardContent>
                     <textarea
-                      className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                      className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                       placeholder="Paste second .env file..."
                       value={compareB}
                       onChange={(e) => setCompareB(e.target.value)}

@@ -43,7 +43,7 @@ export default function App() {
                     <Label htmlFor="input">JSON Input</Label>
                     <textarea
                       id="input"
-                      className="flex min-h-[350px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                      className="flex min-h-[350px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                       placeholder='{"key": "value"}'
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
@@ -55,7 +55,7 @@ export default function App() {
                       id="toml-output"
                       readOnly
                       aria-label="TOML output"
-                      className="flex min-h-[350px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                      className="flex min-h-[350px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                       value={result.toml}
                     />
                   </div>

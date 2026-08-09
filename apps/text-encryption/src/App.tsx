@@ -96,7 +96,7 @@ export default function App() {
                 <Label htmlFor="input">Text</Label>
                 <textarea
                   id="input"
-                  className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-mono"
+                  className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none font-mono"
                   placeholder="Enter text to encrypt or encrypted text to decrypt..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -145,7 +145,7 @@ export default function App() {
               <CardContent className="space-y-4">
                 <textarea
                   readOnly
-                  className="flex min-h-[150px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-mono"
+                  className="flex min-h-[150px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none font-mono"
                   value={output}
                 />
                 <div className="flex justify-end">

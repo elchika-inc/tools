@@ -84,7 +84,7 @@ export default function App() {
               <CardContent className="space-y-4">
                 <textarea
                   aria-label="Input data"
-                  className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono resize-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Enter data..."

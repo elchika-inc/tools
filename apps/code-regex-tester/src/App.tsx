@@ -45,7 +45,7 @@ export default function App() {
                     value={pattern}
                     onChange={(e) => setPattern(e.target.value)}
                     placeholder="pattern"
-                    className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   />
                   <span className="text-muted-foreground font-mono" aria-hidden="true">
                     /
@@ -55,7 +55,7 @@ export default function App() {
                     aria-label="Regular expression flags"
                     value={flags}
                     onChange={(e) => setFlags(e.target.value)}
-                    className="w-20 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="w-20 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                   />
                 </div>
 
@@ -106,7 +106,7 @@ export default function App() {
               <CardContent>
                 <textarea
                   aria-label="Test string input"
-                  className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                   placeholder="テスト文字列を入力..."
                   value={testString}
                   onChange={(e) => setTestString(e.target.value)}

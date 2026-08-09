@@ -217,7 +217,7 @@ export default function App() {
               <textarea
                 ref={inputRef}
                 aria-label="Typing input"
-                className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                 placeholder={
                   gameState === 'idle'
                     ? 'Start typing here...'

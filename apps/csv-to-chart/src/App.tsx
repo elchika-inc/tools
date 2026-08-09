@@ -43,7 +43,7 @@ export default function App() {
                 <label htmlFor="csv-input" className="sr-only">CSV Input</label>
                 <textarea
                   id="csv-input"
-                  className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                   placeholder={'Month,Sales,Profit\nJan,100,30\nFeb,150,45\nMar,200,60'}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

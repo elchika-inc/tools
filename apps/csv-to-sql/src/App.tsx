@@ -92,7 +92,7 @@ export default function App() {
                   <Label htmlFor="input">CSV Input</Label>
                   <textarea
                     id="input"
-                    className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     placeholder={'name,age,city\nAlice,30,Tokyo\nBob,25,Osaka'}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -103,7 +103,7 @@ export default function App() {
                   <textarea
                     id="output"
                     readOnly
-                    className="flex min-h-[150px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="flex min-h-[150px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                     value={output}
                   />
                 </div>

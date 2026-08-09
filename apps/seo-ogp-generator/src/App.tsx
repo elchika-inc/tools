@@ -22,7 +22,7 @@ export default function App() {
   const update = (key: keyof OGPConfig, value: string) =>
     setConfig((p) => ({ ...p, [key]: value }));
   const cls =
-    'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+    'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring';
 
   return <ToastToaster>
   <div className="min-h-screen bg-background p-8">
@@ -101,7 +101,7 @@ export default function App() {
               <CardContent className="space-y-4">
                 <textarea
                   readOnly
-                  className="flex min-h-[300px] w-full rounded-md border border-input bg-muted px-3 py-2 text-xs font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  className="flex min-h-[300px] w-full rounded-md border border-input bg-muted px-3 py-2 text-xs font-mono focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                   value={tags}
                 />
                 <Button type="button" onClick={copyTags} disabled={!tags} className="w-full">

@@ -173,14 +173,14 @@ export default function App() {
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                  <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring h-10 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
                     <Upload className="h-4 w-4" /> Upload .ics
                   </div>
                 </label>
               </div>
 
               <textarea
-                className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring resize-none"
                 placeholder={'BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Meeting\nDTSTART:20240115T100000\nDTEND:20240115T110000\nEND:VEVENT\nEND:VCALENDAR'}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
