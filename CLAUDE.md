@@ -38,7 +38,7 @@ apps/<tool-name>/
   src/
     App.tsx            # メインコンポーネント(ロジック+UI)
     main.tsx           # エントリポイント
-    components/ui/     # shadcn/ui コンポーネント
+    components/ui/     # elchika-inc/ui（Base UI）由来のコンポーネント
     utils/             # コアロジック(純粋関数)
       __tests__/       # ユニットテスト
     hooks/             # カスタムフック(あれば)
@@ -53,9 +53,10 @@ apps/<tool-name>/
 
 - **UI**: React 19 + TypeScript (strict)
 - **ビルド**: Vite+ (Vite 8 + Rolldown)
-- **スタイリング**: Tailwind CSS v4 (`@tailwindcss/vite`) + shadcn/ui (Radix UI)
-  - 全 346 アプリが v4。カラートークンは `@tools/design-tokens` の oklch 定義が唯一の正本で、
-    各アプリの `src/index.css` は `@import "@tools/design-tokens";` の 1 行のみ
+- **スタイリング**: Tailwind CSS v4 (`@tailwindcss/vite`) + elchika-inc/ui (Base UI)
+  - 全 346 アプリが v4。カラートークンは elchika-ui 配布の2層トークン
+    `@tools/design-tokens-elchika` を使用し、各アプリの `src/index.css` は
+    `@import "@tools/design-tokens-elchika";` の 1 行のみ
   - `tailwind.config.js` / `postcss.config.js` は持たない(v4 は CSS-first 設定)
 - **ランタイム**: Node.js (pnpm via Vite+ CLI `vp`)
 - **Linter/Formatter**: Oxlint + Oxfmt (via `vp check`)
@@ -101,7 +102,7 @@ pnpm run scripts/generate-docs.ts # ドキュメント一括生成
 - パスエイリアス: `@/` → `src/`, `@components/`, `@utils/`, `@types/`, `@config/`, `@hooks/`, `@services/`
 - ボタン要素には必ず `type="button"` を付与
 - 非同期クリップボード操作は try/catch で囲む
-- UI コンポーネントは shadcn/ui を使用(Radix UI ベース)
+- UI コンポーネントは elchika-inc/ui の registry から取り込んだ Base UI コンポーネントを使用
 - コアロジックは `src/utils/` に純粋関数として分離
 - テストは `src/utils/__tests__/` に配置
 - Oxfmt: indent 2 spaces, single quotes, semicolons, line width 100
@@ -172,6 +173,12 @@ content-type まで見るのは、存在しないパスに HTML が 200 で返�
   **コミットされている `public/` の中身がそのまま本番になる**
 - 上記は `node scripts/check-asset-paths.js` で機械的に検査できる
   (build-all.sh の先頭と deploy.yml のデプロイ前に組み込み済み。違反があれば止まる)
+- **フォントは共有配信**。`scripts/build-fonts.js` が `packages/router/public/fonts/` に1セット生成し、
+  各アプリの `index.html` は `<link rel="stylesheet" href="/fonts/fonts.css">` で参照する
+- **Vite の `base: './'` は HTML 内の絶対パスも相対化する**ため、`build-all.sh` から呼ばれる
+  `scripts/fix-font-link.js` が build 後に `/fonts/fonts.css` へ書き戻す。
+  共有資産を追加するときは同じ書換えが必要か確認する
+- **dark モードは `data-theme="dark"` 駆動**。`.dark` クラスだけでは切り替わらない
 
 ### 検証コマンドの落とし穴
 
@@ -195,7 +202,7 @@ content-type まで見るのは、存在しないパスに HTML が 200 で返�
   Markdown だけの変更は `git diff` の目視で確認する
 - **整形してはいけないファイルが 3 種類ある。** どれも「diff や字面を読むこと自体が検証手段」で、
   整形するとその検証が壊れる
-  - `packages/design-tokens/tokens.css` — standards テンプレートとの diff が取れなくなる
+  - `packages/design-tokens-elchika/` 配下 — upstream との drift 検知が壊れる
   - `*.md` — 変更箇所のレビューが不能になる
   - `apps/*/vite.config.ts` — gate は PR #849 でクォート非依存になったため整形しても落ちないが、
     346 ファイルに無関係な整形差分が出て変更箇所のレビューが不能になる
