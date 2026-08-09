@@ -76,7 +76,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3O
 
   return <ToastToaster>
   <div className="min-h-screen bg-gray-50 p-4">
-        <main className="mx-auto max-w-3xl space-y-4">
+        <main className="mx-auto max-w-5xl space-y-4">
           <Card>
             <CardHeader>
               <header>
