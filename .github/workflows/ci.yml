@@ -56,9 +56,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # PR 由来の値は `env:` 経由で渡す（`${{ }}` を shell へ直接展開しない）。
+      # 差分の pathspec は `apps/` 限定。`packages/` / `scripts/` / root 設定の変更は
+      # どちらの出力にも入らない（被覆の境界は `.docs/risk-registry.md` の RISK-003）。
       # `apps`  = 変更されたアプリのディレクトリ（ビルド対象）
-      # `files` = 変更された TypeScript ソース（型検査の追加対象）
-      #           削除されたファイルは `[ -f ]` で落とす。
+      # `files` = 変更された `apps/` 配下の TypeScript ソース（型検査の追加対象）
+      #           削除されたファイルは後段の `[ -f ]` で落とす。
       - name: Detect changes
         id: changed
         env:
@@ -87,14 +89,17 @@ jobs:
       # **段階導入**（§6「既に型エラーを抱えているプロジェクトは段階導入してよい（MAY）」）:
       #   リポジトリ全体は 2017 件の型エラーを持ち、全体を対象にすると恒久赤になる。
       #   対象は「常時検査する green なベースライン（`packages/router/src`）」＋
-      #   「その PR が変更した TypeScript ファイル**そのもの**」に絞る。
+      #   「その PR が変更した `apps/` 配下の TypeScript ファイル**そのもの**」に絞る
+      #   （`packages/` と `scripts/` の変更ファイルは対象外 —— 差分の pathspec が
+      #   `apps/` 限定であるため。境界は RISK-003 に記録）。
       #   **アプリの `src/` 全体ではなくファイル単位にしているのは実測に基づく** ——
       #   サンプルした 21/21 のアプリが `src/` のどこかに既存の型エラーを持ち、
       #   ディレクトリ単位にするとアプリを1行でも触る PR がほぼ必ず赤になって、
       #   `auto-on-green` の条件1 が満たせなくなる。ファイル単位なら、赤になるのは
-      #   「触ったファイル自身に型エラーがある」場合だけで、被覆は boy scout rule で
-      #   単調に広がる（縮まない）。実測値と残る赤の率は
-      #   `.docs/risk-registry.md` の RISK-001 が正本。
+      #   「触ったファイル自身に型エラーがある」場合だけになる。
+      #   **代償として、変更ファイルが未変更の利用側を壊す経路は検出しない**
+      #   （`vp check` はエラーの報告対象を渡したファイルに限定するため）。
+      #   実測値・残る赤の率・この後退の詳細は `.docs/risk-registry.md` の RISK-001 が正本。
       - name: Typecheck
         env:
           CHANGED_FILES: ${{ steps.changed.outputs.files }}
