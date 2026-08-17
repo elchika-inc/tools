@@ -39,9 +39,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # 変更されたアプリを base との差分で求めるため履歴が要る。
-          # `--depth=1` の追加 fetch は行わない（`.git/shallow` ができると
-          # base が進んだ PR で merge base を辿れなくなる）。
+          # 変更を base との差分で求めるため履歴が要る（浅い clone では
+          # `github.event.pull_request.base.sha` が到達不能になりうる）。
+          # `--depth=1` の追加 fetch は行わない（`.git/shallow` が後続の
+          # `git diff` を壊すため）。
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
@@ -55,18 +56,28 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # PR 由来の値は `env:` 経由で渡す（`${{ }}` を shell へ直接展開しない）。
-      - name: Detect changed apps
+      # `apps`  = 変更されたアプリのディレクトリ（ビルド対象）
+      # `files` = 変更された TypeScript ソース（型検査の追加対象）
+      #           削除されたファイルは `[ -f ]` で落とす。
+      - name: Detect changes
         id: changed
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          apps=$(git diff --name-only "$BASE_SHA" HEAD -- 'apps/' | cut -d/ -f1,2 | sort -u)
+          diff=$(git diff --name-only "$BASE_SHA" HEAD -- 'apps/')
+          apps=$(printf '%s\n' "$diff" | cut -d/ -f1,2 | sort -u)
+          files=$(printf '%s\n' "$diff" | grep -E '\.tsx?$' || true)
           echo "変更されたアプリ:"
           printf '%s\n' "${apps:-(なし)}"
+          echo "変更された TS ファイル:"
+          printf '%s\n' "${files:-(なし)}"
           {
             echo 'apps<<EOF'
             printf '%s\n' "$apps"
+            echo 'EOF'
+            echo 'files<<EOF'
+            printf '%s\n' "$files"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
@@ -74,22 +85,28 @@ jobs:
       # `vp build` は型エラーがあっても exit 0 を返すので、ビルドに型検査を任せない。
       #
       # **段階導入**（§6「既に型エラーを抱えているプロジェクトは段階導入してよい（MAY）」）:
-      #   リポジトリ全体では既存の型エラーを多数抱えており、全体を対象にすると恒久赤になる。
+      #   リポジトリ全体は 2017 件の型エラーを持ち、全体を対象にすると恒久赤になる。
       #   対象は「常時検査する green なベースライン（`packages/router/src`）」＋
-      #   「その PR が変更したアプリ」に絞る。触ったアプリの型エラーはその PR で顕在化し、
-      #   被覆が boy scout rule で自然に広がる。
-      #   緩和の内容と解除条件は `.docs/risk-registry.md` の RISK-001 に記録している。
+      #   「その PR が変更した TypeScript ファイル**そのもの**」に絞る。
+      #   **アプリの `src/` 全体ではなくファイル単位にしているのは実測に基づく** ——
+      #   サンプルした 21/21 のアプリが `src/` のどこかに既存の型エラーを持ち、
+      #   ディレクトリ単位にするとアプリを1行でも触る PR がほぼ必ず赤になって、
+      #   `auto-on-green` の条件1 が満たせなくなる。ファイル単位なら、赤になるのは
+      #   「触ったファイル自身に型エラーがある」場合だけで、被覆は boy scout rule で
+      #   単調に広がる（縮まない）。実測値と残る赤の率は
+      #   `.docs/risk-registry.md` の RISK-001 が正本。
       - name: Typecheck
         env:
-          CHANGED_APPS: ${{ steps.changed.outputs.apps }}
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
         run: |
           set -euo pipefail
           targets=(packages/router/src)
-          while IFS= read -r app; do
-            [ -n "$app" ] || continue
-            [ -d "$app/src" ] || continue
-            targets+=("$app/src")
-          done <<< "$CHANGED_APPS"
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            # 削除されたファイルは diff に現れるが実体が無いので落とす
+            [ -f "$f" ] || continue
+            targets+=("$f")
+          done <<< "$CHANGED_FILES"
           echo "型検査の対象: ${targets[*]}"
           pnpm exec vp check --no-fmt --no-lint "${targets[@]}"
 
@@ -145,9 +162,17 @@ jobs:
           if [ -d packages/wasm-utils/pkg ]; then wasm_ready=1; else wasm_ready=0; fi
           built=0
           skipped=0
+          notdir=0
           while IFS= read -r app; do
             [ -n "$app" ] || continue
-            [ -d "$app" ] || continue
+            # 削除されたアプリと `apps/` 直下のファイル（cut がそのまま返す）。
+            # 内訳を必ず数える —— 検出数と built+skipped が合わないと
+            # 「サイレントな打ち切りにしない」という anchor の主張が崩れるため。
+            if [ ! -d "$app" ]; then
+              echo "対象外（ディレクトリではない / 削除済み）: $app"
+              notdir=$((notdir + 1))
+              continue
+            fi
             # 依存の有無はハードコードした一覧ではなく package.json から導出する
             # （アプリが増減しても一覧が陳腐化しないため）。
             if [ "$wasm_ready" -eq 0 ] && grep -q 'wasm-utils' "$app/package.json"; then
@@ -160,7 +185,7 @@ jobs:
             echo "::endgroup::"
             built=$((built + 1))
           done <<< "$CHANGED_APPS"
-          echo "ビルドしたアプリ: $built 件 / skip したアプリ: $skipped 件"
+          echo "ビルドしたアプリ: $built 件 / skip: $skipped 件 / 対象外: $notdir 件"
 
       # 本番へ配信されるのは **コミットされた** `packages/router/public/` である
       # （`deploy.yml` はビルドを行わない）。`merge_policy: auto-on-green` は
