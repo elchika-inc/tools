@@ -47,7 +47,18 @@
 - location: `.github/workflows/ci.yml` の `Build changed apps` ステップ
 - status: accepted
 - reason: standards `DOCS_OPS.md` §6 の役割分担は PR CI に「型検査 + ビルド + ユニットテスト」を課すが、同節の基本方針は「CI が担うのは安く・決定的に落ちるチェックだけ」である。2026-08-17 のローカル実測で1アプリのビルド（`apps/url-encoder` で `pnpm run build`）は **exit 0 / real 3.11 秒**であり、346 アプリを直列にビルドすると約 18 分（GitHub-hosted runner ではさらに伸びる）になる。PR ごとにこの費用を払うのは基本方針に反する。加えて、本番へ配信されるのは**コミットされた** `packages/router/public/` であって CI のビルド産物ではない（`deploy.yml` はビルドを行わない）ため、全アプリをビルドしても配信物の正しさは担保されない。配信物側の担保は `Check asset paths` ステップ（`node scripts/check-asset-paths.js`、実測 exit 0 / real 0.14 秒）が担う。
-- anchor: `ci.yml` の `Build changed apps` ステップのログが毎回「ビルドしたアプリ: N 件」を出力する（サイレントな打ち切りにしない）。ビルドが壊れたアプリが `main` へ入った場合は `scripts/build-all.sh` が `set -e` で停止し、デプロイ作業の時点で顕在化する。
+- anchor: `ci.yml` の `Build changed apps` ステップのログが毎回「ビルドしたアプリ: N 件 / skip したアプリ: M 件」を出力する（サイレントな打ち切りにしない）。ビルドが壊れたアプリが `main` へ入った場合は `scripts/build-all.sh` が `set -e` で停止し、デプロイ作業の時点で顕在化する。
+- 残余（未検証経路）: このステップと `Typecheck` の変更アプリ分は、**アプリを1件も変更しない PR では1度も実行されない**。導入 PR（#859）自身がこれに該当し、CI green が証明したのは「アプリを触らない PR で通ること」までである。シェルロジックは変更アプリ 0 件 / 2 件 / wasm 依存を含む 2 件の3ケースをローカルで模擬実行して確認したが、runner 上での実走は最初にアプリを変更する PR が初回になる。**その PR で赤が出た場合、まず「設計どおりの顕在化（触ったアプリの既存型エラー）」と「機構の破損」を切り分けること。**
+
+## RISK-006: PR CI は `wasm-utils` に依存する3アプリをビルドできず skip する
+
+- date: 2026-08-17
+- confidence: high
+- location: `.github/workflows/ci.yml` の `Build changed apps` ステップ
+- status: accepted
+- reason: `packages/wasm-utils/pkg/` は `packages/wasm-utils/.gitignore` の `/pkg` により git 管理外で、チェックアウトに含まれない。生成には Rust ツールチェーンと `wasm-pack` が必要（`packages/wasm-utils/build.sh` = `wasm-pack build --target bundler --out-dir pkg`）で、`package.json` の `postinstall` は `wasm-pack` が無い場合に警告を出して**成功する**ため、`pnpm install` では pkg ができない。GitHub-hosted runner に `wasm-pack` は入っていない。2026-08-17 のローカル実測で、`packages/wasm-utils/pkg` を退避した状態の `apps/bcrypt-hash` の `pnpm run build` は **exit 1** だった（pkg を戻すと通る）。該当アプリは `apps/bcrypt-hash` / `apps/hash-crc32` / `apps/zip-creator` の3件（`grep -rl wasm-utils apps/*/package.json` で導出。workflow 側もこの導出を使うのでハードコードした一覧は持たない）。CI へ `cargo install wasm-pack` を足すと、これら3アプリを触らない大多数の PR にも数分のコストが乗る。
+- 解除条件: 次のいずれか。①CI に `wasm-pack` の導入ステップを（該当アプリが変更されたときだけ走る形で）追加する ②`packages/wasm-utils/pkg/` を git 管理下へ入れる。いずれの場合も `packages/wasm-utils/pkg` が存在すれば workflow の skip 分岐は自動的に無効になるため、workflow 側の変更は不要。
+- anchor: `Build changed apps` ステップが skip のたびに `::warning::` を出し、末尾で「ビルドしたアプリ: N 件 / skip したアプリ: M 件」を必ず出力する（サイレントな打ち切りにしない）。これら3アプリのビルド破壊は `scripts/build-all.sh`（Step 0 で `wasm-utils` を先にビルドする）が `set -e` で停止することにより、デプロイ作業の時点で顕在化する。
 
 ## RISK-004: `merge_policy: auto-on-green` の採用で配信が人間の確認を経ずに起動しうる
 

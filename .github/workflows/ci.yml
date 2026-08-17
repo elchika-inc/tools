@@ -126,21 +126,41 @@ jobs:
       # チェックだけ」）。変更されたアプリだけをビルドする。
       # 変更が無い PR ではビルド対象が0件になるが、それは検査の省略ではなく
       # 「このPRがアプリのソースを1行も変えていない」ことの帰結である。
+      #
+      # **wasm 依存アプリの skip**: `packages/wasm-utils/pkg/` は gitignore 対象で
+      #   チェックアウトに含まれず、生成には Rust ツールチェーンと `wasm-pack` が要る
+      #   （`build.sh` / `package.json` の postinstall）。runner にはどちらも無いため、
+      #   `wasm-utils` に依存するアプリは pkg 不在ではビルドできない（ローカル実測:
+      #   pkg を退避して `apps/bcrypt-hash` を `pnpm run build` すると exit 1）。
+      #   pkg が存在すれば通常どおりビルドするので、CI へ wasm-pack を導入すれば
+      #   この分岐は自動的に無効になる。skip は必ずログへ出す（サイレントな打ち切りにしない）。
+      #   受容と解除条件は `.docs/risk-registry.md` の RISK-006 に記録している。
       - name: Build changed apps
         env:
           CHANGED_APPS: ${{ steps.changed.outputs.apps }}
         run: |
           set -euo pipefail
+          # `set -e` 下で `[ ... ] && x=1` は AND-OR list の非最終要素なので中断しない
+          # （実測済み）が、その依存は暗黙的なので if で明示する。
+          if [ -d packages/wasm-utils/pkg ]; then wasm_ready=1; else wasm_ready=0; fi
           built=0
+          skipped=0
           while IFS= read -r app; do
             [ -n "$app" ] || continue
             [ -d "$app" ] || continue
+            # 依存の有無はハードコードした一覧ではなく package.json から導出する
+            # （アプリが増減しても一覧が陳腐化しないため）。
+            if [ "$wasm_ready" -eq 0 ] && grep -q 'wasm-utils' "$app/package.json"; then
+              echo "::warning::$app は wasm-utils に依存し packages/wasm-utils/pkg が無いため skip した（RISK-006）"
+              skipped=$((skipped + 1))
+              continue
+            fi
             echo "::group::Building $app"
             (cd "$app" && pnpm run build)
             echo "::endgroup::"
             built=$((built + 1))
           done <<< "$CHANGED_APPS"
-          echo "ビルドしたアプリ: $built 件"
+          echo "ビルドしたアプリ: $built 件 / skip したアプリ: $skipped 件"
 
       # 本番へ配信されるのは **コミットされた** `packages/router/public/` である
       # （`deploy.yml` はビルドを行わない）。`merge_policy: auto-on-green` は
