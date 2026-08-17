@@ -20,6 +20,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # DOCS_OPS §6 のジョブ構成は main push を「型検査 → ユニットテスト → build → deploy」
+      # と定める（rev.73）。deploy 側にも置くのは、①PR を経由しない main 直 push は
+      # PR CI を通らないこと ②PR CI が検証するのは PR head であってマージ後の main
+      # そのものではないこと（並行 PR との semantic conflict）——の2点による。
+      # `merge_policy: auto-on-green` は auto-deploy を意味するので、ここが人間不在で
+      # 配信される経路の最後の防壁になる。
+      #
+      # 型検査は build（ここでは deploy）より前に置く（§6 MUST）。
+      # 対象と隔離リストは ci.yml と同一（緩和の内容と解除条件は
+      # .docs/risk-registry.md の RISK-001 / RISK-002 が正本）。
+      # ci.yml と違い変更アプリの検出は行わない —— push イベントには PR の base が無く、
+      # main 直 push と merge commit で差分の意味が変わるため、常時 green な
+      # ベースラインだけを対象にする。
+      - name: Typecheck
+        run: pnpm exec vp check --no-fmt --no-lint packages/router/src
+
+      - name: Unit test
+        run: |
+          set -euo pipefail
+          pnpm exec vp test --run \
+            --exclude 'apps/bcrypt-hash/src/utils/__tests__/bcryptHash.test.ts' \
+            --exclude 'apps/hash-crc32/src/utils/__tests__/crc32.test.ts' \
+            --exclude 'apps/hash-md5/src/utils/__tests__/md5.test.ts' \
+            --exclude 'apps/zip-creator/src/utils/__tests__/zipCreator.test.ts' \
+            --exclude 'apps/sql-playground/src/utils/__tests__/sqlEngine.test.ts' \
+            --exclude 'packages/mcp-server/src/__tests__/registry.test.ts' \
+            --exclude 'apps/file-rename-batch/src/utils/__tests__/rename.test.ts' \
+            --exclude 'apps/geo-distance/src/utils/__tests__/geoDistance.test.ts' \
+            --exclude 'apps/k8s-yaml-generator/src/utils/__tests__/k8sGenerator.test.ts' \
+            --exclude 'apps/markdown-to-slides/src/utils/__tests__/slideParser.test.ts' \
+            --exclude 'apps/nato-phonetic/src/utils/__tests__/nato.test.ts' \
+            --exclude 'packages/router/src/__tests__/index.test.ts'
+
       # このワークフローはビルドを行わず、コミットされた packages/router/public/ を
       # そのまま本番へ配信する。壊れた成果物がコミットされていれば本番が壊れるため、
       # デプロイ前に vite base とビルド成果物の参照パスを検査して止める。
