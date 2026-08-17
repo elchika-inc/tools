@@ -6,7 +6,11 @@
 
 ## Tech Stack
 
-- standards_version: 2026-08-14 (rev.70)。
+- standards_version: 2026-08-17 (rev.77)。
+- branch_policy: `protected`（PR 必須で、直 push の bypass を設けない）。2026-08-17 実測: ruleset `id=20942268` / `name=main` / `enforcement=active` / 対象 `refs/heads/main` / **`bypass_actors` は空** / rules は `pull_request`（`required_approving_review_count=0`・merge / squash / rebase を許可）と `required_status_checks`（context は **`ci`** の1本・`strict_required_status_checks_policy=true`）。
+- merge_policy: `auto-on-green`（owner `elchika-inc` の既定。DOCS_OPS §5 の owner 別既定表）。当リポジトリは `pnpm-lock.yaml` に加え、**コミットされたビルド成果物 `packages/router/public/`**（ファイル名ハッシュを含み、`scripts/build-all.sh` がアプリ単位で作り直す）という「正しさが base の内容に依存する成果物」を持つ。DOCS_OPS §5 はこの種の成果物を持つリポジトリが `auto-on-green` を宣言する場合、required status check と、strict 設定（Require branches to be up to date before merging）または merge queue の有効化を MUST とする（**この MUST は required status check の有無に依存しない**）。上記 ruleset の `required_status_checks`（context `ci`・`strict=true`）がこれを満たす。`allow_auto_merge` も `true`（2026-08-17 実測）。
+  - **条件1 の対象 check（`ci`）は required に含まれているため、`gh pr merge --auto` を使ってよい**（§5「マージ機構」の前者）。`--auto` を使う場合は `--match-head-commit <判定時 head>` を付ける（§5 の MUST）。
+  - エージェントがマージ操作を行う場合の記録（`agent-merge-verdict/*` コメント）は DOCS_OPS §5「エージェントのマージ記録（MUST）」が正本。`merge_policy` の値を問わず適用される。
 - **UI**: React 19 + TypeScript (strict)
 - **ビルド**: Vite+ (Vite 8 + Rolldown)
 - **スタイリング**: Tailwind CSS v4 (`@tailwindcss/vite`) + elchika-inc/ui (Base UI)
@@ -220,6 +224,19 @@ pnpm run dev
 7. `packages/router/src/config/apps.ts` にルーティング設定追加
 
 参考: `.docs/APP_TEMPLATE_GUIDE.md`, `.docs/DESIGN_SYSTEM.md`
+
+## CI
+
+| workflow | trigger | 内容 |
+|---|---|---|
+| `.github/workflows/ci.yml` | `pull_request` | 型検査 → ユニットテスト → 変更アプリのビルド → アセットパス検査。check 名は **`ci`** |
+| `.github/workflows/deploy.yml` | `push: [main]` | 型検査 → ユニットテスト → アセットパス検査 → Workers deploy |
+
+- **required status check は `ci`**（`ci.yml` の job id。job に `name:` を置いていないので出所は1箇所）。ruleset `main`（id=20942268）に `strict=true` で設定済み。現構成は job 1本で matrix を持たないため、matrix 展開名のように名前が消えることがない。**job を分割・改名するときは、集約 job を立てて required の対象を `ci` という固定名に保つこと**（required が存在しない名前を指すと、以後すべての PR が「Expected — waiting」で永久に BLOCKED になる）。
+- **lint / fmt は CI で実行しない。** ローカルの `vp check` / `vp fmt` が一次責任者（standards `DOCS_OPS.md` §6）。
+- **E2E は Actions で実行しない（MUST NOT）。** `vp test` が読む root `vite.config.ts` の `test.exclude` に `**/e2e/**` があり、Playwright の spec は収集対象に入らない。E2E はローカルの `pnpm test:e2e` で担保する。
+- 型検査の対象範囲・ユニットテストの隔離リスト・ビルド対象の絞り込みはいずれも緩和であり、**内容・実測値・解除条件は `.docs/risk-registry.md` が正本**（RISK-001 / RISK-002 / RISK-003 / RISK-006 ほか）。この節と workflow のコメントは要約とポインタで、食い違ったときは台帳が勝つ。**隔離リストへの追加は同じ PR で RISK-002 を更新する。**
+- `ci.yml` の job は secrets を1つも参照せず、`permissions: contents: read` のみ・`environment` 指定なし・GitHub-hosted runner で動く。`DOCS_OPS.md` §6 の信頼境界の**内側**に留まっており、「信頼済みと見なせる条件」による緩和を採っていない（したがって §6 の緩和記録の対象外）。**secrets の参照・`permissions` の write 化・`environment` の追加・self-hosted runner への変更は、いずれもこの前提を壊す**（その時点で §6 の緩和記録が MUST になる）。
 
 ## デプロイ
 
