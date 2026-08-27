@@ -55,6 +55,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # style lint ではなく、standards `DESIGN.md` の MUST に対する決定的検査。
+      - name: Check design rules
+        run: node scripts/check-design-lint.mjs
+
       # PR 由来の値は `env:` 経由で渡す（`${{ }}` を shell へ直接展開しない）。
       # 差分の pathspec は `apps/` 限定。`packages/` / `scripts/` / root 設定の変更は
       # どちらの出力にも入らない（被覆の境界は `.docs/risk-registry.md` の RISK-003）。

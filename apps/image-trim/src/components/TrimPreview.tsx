@@ -89,7 +89,7 @@ export function TrimPreview({ imageState, trimResult }: TrimPreviewProps) {
 
       {/* 完全透過の警告 */}
       {imageState.status === 'loaded' && trimResult === null && (
-        <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4">
+        <div className="rounded-lg border border-yellow-500/50 bg-muted p-4">
           <p className="text-sm text-yellow-700 dark:text-yellow-400">
             トリミング可能な領域がありません。画像が完全に透過しているか、アルファ閾値を調整してください。
           </p>

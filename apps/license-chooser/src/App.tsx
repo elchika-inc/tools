@@ -2,9 +2,8 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Copy, Download, Check, X, Minus } from 'lucide-react';
+import { Copy, Download, Check, X } from 'lucide-react';
 import {
-  LICENSES,
   FEATURE_LABELS,
   recommendLicenses,
   type License,
@@ -61,7 +60,7 @@ export default function App() {
     value ? (
       <Check className="h-4 w-4 text-green-600" />
     ) : (
-      <X className="h-4 w-4 text-red-400" />
+      <X className="h-4 w-4 text-destructive" />
     );
 
   return <ToastToaster>
