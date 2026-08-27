@@ -61,7 +61,7 @@ export default function App() {
     value ? (
       <Check className="h-4 w-4 text-green-600" />
     ) : (
-      <X className="h-4 w-4 text-red-400" />
+      <X className="h-4 w-4 text-destructive" />
     );
 
   return <ToastToaster>
