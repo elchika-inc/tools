@@ -124,3 +124,25 @@
 - **受容していた間の運用（解消済み）**: 設定が入るまでの間は `AGENTS.md` の `merge_policy` に「GitHub 設定が未完了の間、エージェントはマージ操作を行わず human 承認へ落とす」と明記し、実効の判定を `human` と同じ側へ倒していた（値だけを読む機構には `auto-on-green` と映るため、これは運用規律であって技術ゲートではなかった）。設定が入った現在は条件1 が技術ゲートとして成立しているので、この記述は `AGENTS.md` から外してある。
 - 解除条件: 司令塔が ①ruleset を新設し required status check に `ci` を指定 ②strict 設定または merge queue を有効化 —— を完了した時点で `mitigated` にし、あわせて `branch_policy` を `unprotected` から `protected` へ改める。**`allow_auto_merge` は解除の必須条件ではない**（§5「マージ機構」は `--auto` を使わず `gh pr checks` で全 check の green を実測してマージする経路も認めているため。`--auto` を使う場合にのみ必要）。**逆に、これらの設定を実施しない判断になった場合は `merge_policy` を `human` へ戻す**（宣言だけを残さない）。
 - anchor: `gh api repos/elchika-inc/tools/rulesets` と `gh api repos/elchika-inc/tools --jq .allow_auto_merge` の出力。どちらもこのリポジトリの diff の外にある実測で、受容が解けたか続いているかを直接示す。加えて、受容が破れる形（設定が無いままエージェントがマージすること）は、§5 が MUST とする `agent-merge-verdict/*` コメントの有無と内容で PR ごとに突合できる。
+
+## RISK-010: 上流トークンの同期後も tools の従来の見た目と動きを互換層で維持する
+
+- date: 2026-10-23
+- confidence: high
+- location: `packages/design-tokens-elchika/compat.css` / `packages/design-tokens-elchika/index.css`
+- status: accepted
+- 受容の内容: 上流の design system の一部（動き・字の太さ・字間・文字の大きさ・行間・影・角丸）を互換層で tools の従来の値へ戻す。既存の `font-heading` に新たに付く字形設定も従来どおりにし、`tw-animate-css` の開閉アニメーションを継続する。上流の3ファイルは Google Fonts の import 行以外をそのまま同期し、drift テストの比較条件は変えない。新規の `--rounding-*`・`--elevation-*` や動きのトークン・utility は維持する。
+- reason: 上流の部品の移行は tools に未適用であり、トークンだけを同期すると既存の見た目と動きが変わる。司令塔の2026-10-23の実測では、`apps/` の6,495ソースファイルのうち tw-animate-css のクラスを使うファイルは326件、`font-bold` 等は351件、`tracking-tight` 等は349件、`ease-in` / `ease-out` / `ease-in-out` は337件、`text-xs`〜`text-9xl` は2,437件（各集合は重複する）。部品移行を本変更へ混ぜず、origin/main の `2168302f` と Tailwind 4.3.3 の実効値を維持する方針を受容する。
+- 解除条件: tools の部品を上流の開閉動作とトークンへ移し、全アプリの light / dark の表示・動作を検証した時点で `compat.css` とその import を削除し、このエントリを `mitigated` にする。移行まで、上流または Tailwind を更新する際は全アプリのビルド・CSS・画面の比較で互換層を再評価する。
+- anchor: `packages/design-tokens-elchika/compat.css` の復元宣言と、`index.css` の `tokens.css` → `compat.css` の import 順。上流との一致は変更しない `packages/design-tokens-elchika/src/__tests__/upstream-drift.test.ts`、従来表示との一致は全アプリのビルド済みCSS・light / dark画面・computed styleの比較で確認する。
+
+## RISK-011: hash-sha1 の dark の角丸26画素に限り、画面比較の完全一致から除外する
+
+- date: 2026-10-23
+- confidence: high
+- location: `packages/design-tokens-elchika/compat.css` / `apps/hash-sha1` の dark 初期画面
+- status: accepted
+- 受容の内容: design-tokens 同期の画面検証で、`hash-sha1` の dark にある無効状態のボタンの右端角丸だけ、26画素の差を受容する。Chromium 145.0.7632.6、viewport 1280×900、deviceScaleFactor 1、fullPage の座標範囲は x=1127〜1134 / y=423〜452、最大の色成分差は1/255。元仕様の「A/Aで安定したアプリは画素差0」に対するこの1件だけの例外であり、比較閾値は変えない。他の安定画面は引き続き画素差0を要求する。
+- reason: A/A は初回・補足とも0画素、A/B（最終と追加）で同じ26画素の差を再現した。全346アプリの既存CSS宣言・utilityの並び順・tw-animate-cssの規則数は一致し、computed style は全692画面で一致、console / page error は全件0だった。司令塔は宣言と実効スタイルの一致、および局所的な1/255の差から描画のアンチエイリアス差と判断し、視認できる差ではなく追加調査の効果が小さいとして、2026-10-23に明示受容した（原因を実装変更で切り分け切ったという主張ではない）。証跡 `ab-2.json` は該当1ケースの画素不一致、`css-comparison-2.json` は346/346の宣言一致、`hash-diagnostic.json` は追加A/Bの8ケース中該当1ケースだけの同じ差を記録する。
+- 解除条件: 同じ条件で当該画面の差が0になることを確認した時点、または部品移行に伴い表示の基準を承認して更新した時点で `mitigated` にする。位置・画素数・色成分差が拡大した場合や他の画面に差が出た場合は、この受容を流用しない。
+- anchor: `packages/design-tokens-elchika/compat.css` と全アプリのCSS・画面比較結果。同期の元仕様・この限定裁定・検証の集計は本変更のPR本文にも記録する。

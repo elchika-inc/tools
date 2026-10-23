@@ -1,7 +1,6 @@
 @import "./design-system/tokens.css" layer(design-system);
 @import "./design-system/brands.css" layer(design-system);
 @import "tailwindcss";
-@import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -14,11 +13,58 @@
   opacity: var(--opacity-disabled);
 }
 
+@utility duration-instant {
+  transition-duration: var(--duration-instant);
+  --tw-duration: var(--duration-instant);
+}
+
+@utility duration-stagger {
+  transition-duration: var(--duration-stagger);
+  --tw-duration: var(--duration-stagger);
+}
+
+@utility duration-micro {
+  transition-duration: var(--duration-micro);
+  --tw-duration: var(--duration-micro);
+}
+
+@utility duration-fast {
+  transition-duration: var(--duration-fast);
+  --tw-duration: var(--duration-fast);
+}
+
+@utility duration-base {
+  transition-duration: var(--duration-base);
+  --tw-duration: var(--duration-base);
+}
+
+@utility duration-slow {
+  transition-duration: var(--duration-slow);
+  --tw-duration: var(--duration-slow);
+}
+
+@utility duration-slower {
+  transition-duration: var(--duration-slower);
+  --tw-duration: var(--duration-slower);
+}
+
+@utility duration-emphasis {
+  transition-duration: var(--duration-emphasis);
+  --tw-duration: var(--duration-emphasis);
+}
+
+/* 状態色の遷移。design system の --state-transition（fast + standard）をそのまま流す。 */
+@utility transition-state {
+  transition: var(--state-transition);
+}
+
 @theme inline {
     /* design system 層の書体へ接続する。ブランドノブとして見出しだけ差し替えたい場合は
        利用側 CSS の :root で --font-display を上書きする（@theme inline は値を展開するため
        --font-heading の :root 上書きでは効かない）。 */
     --font-heading: var(--font-display);
+    /* design system の --font-feature-display。欧文には無害なので言語で分けない。 */
+    --font-heading--font-feature-settings: "palt" 1;
     --font-sans: var(--font-body);
     /* Tailwind の @theme が同名の --font-mono を持ち cascade layer 順で勝つため、
        design system 側の別名 --font-code を経由して再マップする。 */
@@ -47,6 +93,11 @@
     --color-success-foreground: var(--success-foreground);
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-highlight: var(--highlight);
+    --color-highlight-bg: var(--highlight-bg);
+    --color-highlight-text: var(--highlight-text);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -66,15 +117,115 @@
     --color-state-hover: var(--state-hover-bg);
     --color-state-press: var(--state-press-bg);
     --color-state-selected: var(--state-selected-bg);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+    /* design system の角丸 --rounding-xs へ接続する。 */
+    --radius-xs: var(--rounding-xs);
+    /* design system の角丸 --rounding-sm へ接続する。 */
+    --radius-sm: var(--rounding-sm);
+    /* design system の角丸 --rounding-md へ接続する。 */
+    --radius-md: var(--rounding-md);
+    /* design system の角丸 --rounding-lg へ接続する。 */
+    --radius-lg: var(--rounding-lg);
+    /* design system の角丸 --rounding-xl へ接続する。 */
+    --radius-xl: var(--rounding-xl);
+    /* design system の --elevation-* に揃えるため、既定の影を解除する。 */
+    --shadow-*: initial;
+    /* design system の影 --elevation-xs へ接続する。 */
+    --shadow-xs: var(--elevation-xs);
+    /* design system の影 --elevation-sm へ接続する。 */
+    --shadow-sm: var(--elevation-sm);
+    /* design system の影 --elevation-md へ接続する。 */
+    --shadow-md: var(--elevation-md);
+    /* design system の影 --elevation-lg へ接続する。 */
+    --shadow-lg: var(--elevation-lg);
+    /* design-tokens.html の --font-weight-regular / medium / semibold を正本とし、同名衝突を避けて値を直書きする。 */
+    --font-weight-*: initial;
+    /* design system の --font-weight-regular の値へ揃える。 */
+    --font-weight-normal: 400;
+    /* design system の --font-weight-medium の値へ揃える。 */
+    --font-weight-medium: 500;
+    /* design system の --font-weight-semibold の値へ揃える。 */
+    --font-weight-semibold: 600;
+    /* design system の --duration-fast へ接続する。 */
+    --default-transition-duration: var(--duration-fast);
+    /* design system の --ease-standard へ接続する。 */
+    --default-transition-timing-function: var(--ease-standard);
+    /* design system の曲線 --curve-standard へ接続する。 */
+    --ease-*: initial;
+    --ease-standard: var(--curve-standard);
+    /* design system の曲線 --curve-entrance へ接続する。 */
+    --ease-entrance: var(--curve-entrance);
+    /* design system の曲線 --curve-exit へ接続する。 */
+    --ease-exit: var(--curve-exit);
+    /* design system の曲線 --curve-bounce へ接続する。 */
+    --ease-bounce: var(--curve-bounce);
+    /* design system の曲線 --curve-bounce-strong へ接続する。 */
+    --ease-bounce-strong: var(--curve-bounce-strong);
+    /* caret の段は design system に無いため、既存の点滅周期 1.25s を維持する。 */
+    --animate-caret-blink: caret-blink 1.25s var(--curve-entrance) infinite;
+    @keyframes caret-blink {
+      0%, 70%, 100% { opacity: 1; }
+      20%, 50% { opacity: 0; }
+    }
+    /* Field の invalid shake。micro × 4 セグメント、振幅は --motion-distance-sm。 */
+    --animate-shake: shake calc(var(--duration-micro) * 4) var(--curve-standard);
+    @keyframes shake {
+      0%, 100% { translate: 0 0; }
+      25%, 75% { translate: calc(-1 * var(--motion-distance-sm)) 0; }
+      50% { translate: var(--motion-distance-sm) 0; }
+    }
+    /* design system の --control-height-sm へ接続する。 */
+    --spacing-control-sm: var(--control-height-sm);
+    /* design system の --control-height-md へ接続する。 */
+    --spacing-control-md: var(--control-height-md);
+    /* design system の --control-height-lg へ接続する。 */
+    --spacing-control-lg: var(--control-height-lg);
+    /* design system の --control-padding-x へ接続する。 */
+    --spacing-control-x: var(--control-padding-x);
     --container-dialog: calc(100% - 2rem);
     --spacing-tabs-trigger: calc(100% - 1px);
+}
+
+/* 組版は :lang(en) の再調整を残すため inline にしない。 */
+@theme {
+  /* design-tokens.html の Typography 節を正本とし、Tailwind と同名のトークンは値を直書きする（scripts/theme-typography.test.mjs が tokens.css と突合する）。 */
+  --text-*: initial;
+  --text-3xs: 0.6875rem;
+  --text-3xs--line-height: 1.5;
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1.5;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.75;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.9;
+  --text-xl: 1.3125rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl: 1.5625rem;
+  --text-2xl--line-height: 1.35;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.35;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.35;
+  --text-5xl: 2.75rem;
+  --text-5xl--line-height: 1.35;
+  --text-6xl: 3.375rem;
+  --text-6xl--line-height: 1.35;
+  --leading-*: initial;
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-display: 1.35;
+  --leading-snug: 1.5;
+  --leading-normal: 1.75;
+  --leading-relaxed: 1.9;
+  /* Tailwind 既定の tracking を解除し、design system の 4 段だけを残す。 */
+  --tracking-*: initial;
+  --tracking-display: -0.02em;
+  --tracking-heading: -0.01em;
+  --tracking-normal: 0.02em;
+  --tracking-label: 0.08em;
 }
 
 /* solid destructive の AA を満たす濃色。status danger は subtle / indicator で引き続き使う。 */
@@ -104,6 +255,12 @@
     --success-foreground: rgb(var(--color-status-success-text));
     --warning: rgb(var(--color-status-warning-bg));
     --warning-foreground: rgb(var(--color-status-warning-text));
+    --info: rgb(var(--color-status-info-bg));
+    --info-foreground: rgb(var(--color-status-info-text));
+    /* design system の黄アクセント --color-accent-highlight* へ接続する。shadcn の --accent と名前が衝突するため highlight で出す。 */
+    --highlight: rgb(var(--color-accent-highlight));
+    --highlight-bg: rgb(var(--color-accent-highlight-bg));
+    --highlight-text: rgb(var(--color-accent-highlight-text));
     --border: rgb(var(--color-border-default));
     --input: rgb(var(--color-border-control));
     --ring: rgb(var(--color-brand-primary));
@@ -112,7 +269,6 @@
     --chart-3: rgb(var(--chart-series-3));
     --chart-4: rgb(var(--chart-series-4));
     --chart-5: rgb(var(--chart-series-5));
-    --radius: 0.625rem;
     /* 面の alias とペアを保つ */
     --sidebar: var(--card);
     --sidebar-foreground: var(--card-foreground);
@@ -150,6 +306,12 @@
     --success-foreground: rgb(var(--color-status-success-text));
     --warning: rgb(var(--color-status-warning-bg));
     --warning-foreground: rgb(var(--color-status-warning-text));
+    --info: rgb(var(--color-status-info-bg));
+    --info-foreground: rgb(var(--color-status-info-text));
+    /* design system の黄アクセント --color-accent-highlight* へ接続する。shadcn の --accent と名前が衝突するため highlight で出す。 */
+    --highlight: rgb(var(--color-accent-highlight));
+    --highlight-bg: rgb(var(--color-accent-highlight-bg));
+    --highlight-text: rgb(var(--color-accent-highlight-text));
     --border: rgb(var(--color-border-default));
     --input: rgb(var(--color-border-control));
     --ring: rgb(var(--color-brand-primary));
@@ -158,7 +320,6 @@
     --chart-3: rgb(var(--chart-series-3));
     --chart-4: rgb(var(--chart-series-4));
     --chart-5: rgb(var(--chart-series-5));
-    --radius: 0.625rem;
     --sidebar: var(--card);
     --sidebar-foreground: var(--card-foreground);
     --sidebar-primary: var(--primary);
@@ -183,9 +344,9 @@
 
 /*
  * WCAG 2.3.3 Animation from Interactions / 2.2.2 Pause, Stop, Hide.
- * Respect the user's reduced-motion preference by neutralizing animations,
- * transitions and smooth scrolling app-wide (tw-animate-css, Tailwind
- * transition utilities, driver.js tour, skeleton shimmer, etc.).
+ * reduced-motion の設定に従い、アプリ全体の animation・transition・
+ * smooth scrolling（caret、Tailwind の transition utility、
+ * driver.js tour、skeleton shimmer 等）を抑制する。
  */
 @media (prefers-reduced-motion: reduce) {
   *,
