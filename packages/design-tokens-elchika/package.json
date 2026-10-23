@@ -4,11 +4,13 @@
   "private": true,
   "files": [
     "tokens.css",
+    "index.css",
+    "compat.css",
     "design-system"
   ],
   "type": "module",
   "exports": {
-    ".": "./tokens.css"
+    ".": "./index.css"
   },
   "dependencies": {
     "shadcn": "^4.16.2",
