@@ -57,7 +57,7 @@
 - confidence: medium
 - location: `.github/workflows/ci.yml` の `Detect changes` / `Build changed apps` ステップ
 - status: accepted
-- reason: standards `DOCS_OPS.md` §6 の役割分担は PR CI に「型検査 + ビルド + ユニットテスト」を課すが、同節の基本方針は「CI が担うのは安く・決定的に落ちるチェックだけ」である。2026-08-17 のローカル実測で1アプリのビルド（`apps/url-encoder` で `pnpm run build`）は **exit 0 / real 3.11 秒**であり、346 アプリを直列にビルドすると約 18 分になる（**この 18 分は1アプリの実測からの外挿であり、GitHub-hosted runner での実測ではない**）。PR ごとにこの費用を払うのは基本方針に反する。当時はコミットされた `packages/router/public/` をそのまま本番へ配信していたため、CI で全アプリをビルドしても配信物の正しさは担保されなかった。2026-10-31 の手作業への移行後は、人が `origin/production` から `build-all.sh` で生成した `public/` を配信する。CI のビルド産物は配信に使わず、コミットされた `public/` との一致も検査しない（RISK-008）。
+- reason: standards `DOCS_OPS.md` §6 の役割分担は PR CI に「型検査 + ビルド + ユニットテスト」を課すが、同節の基本方針は「CI が担うのは安く・決定的に落ちるチェックだけ」である。2026-08-17 のローカル実測で1アプリのビルド（`apps/url-encoder` で `pnpm run build`）は **exit 0 / real 3.11 秒**であり、346 アプリを直列にビルドすると約 18 分になる（**この 18 分は1アプリの実測からの外挿であり、GitHub-hosted runner での実測ではない**）。PR ごとにこの費用を払うのは基本方針に反する。当時はコミットされた `packages/router/public/` をそのまま本番へ配信していたため、CI で全アプリをビルドしても配信物の正しさは担保されなかった。2026-10-31 の手作業への移行後も、人が `origin/production` にコミットされた `public/` をそのまま配信する。CI のビルド産物は配信に使わず、コミットされた `public/` との一致も検査しない（RISK-008）。
 - **被覆の境界（明記）**: 差分の pathspec は `-- 'apps/'` に限定しているため、**`packages/` 配下（`router` / `mcp-server` / `design-tokens-elchika` / `wasm-utils`）と `scripts/` / root 設定の変更は、どの workflow でもビルドされない**。`packages/router/src` は型検査の常時対象に入るが、ビルドは通らない。共有パッケージの破壊は `scripts/build-all.sh`（Step 0 で `wasm-utils` を先にビルドする）を実行するデプロイ作業まで顕在化しない。
 - 残余（未検証経路）: `Build changed apps` と `Typecheck` の変更ファイル分は、**アプリを1件も変更しない PR では1度も実行されない**。導入 PR（#859）自身がこれに該当し、CI green が証明したのは「アプリを触らない PR で通ること」までである。シェルロジックは変更 0 件 / 2 件 / wasm 依存を含む 2 件の3ケースをローカルで模擬実行して確認したが、runner 上での実走は最初にアプリを変更する PR が初回になる。**その PR で赤が出た場合、まず「設計どおりの顕在化（触ったファイルの既存型エラー）」と「機構の破損」を切り分けること。**
 - 残余（差分基準のずれ）: `github.event.pull_request.base.sha` はイベント発火時点の base 先端であって merge base ではない。base が進んだ後の再実行（Re-run all jobs）では、`git diff "$BASE_SHA" HEAD` が他 PR のマージ分まで拾い、**PR が触っていないアプリが検査・ビルド対象に入りうる**（過剰検出。fail-safe 側だが、無関係な既存型エラーで赤になる原因になる）。この場合は差分ログ（`変更されたアプリ:` / `変更された TS ファイル:` の出力）で対象を確認する。
@@ -102,9 +102,9 @@
 - location: `AGENTS.md` の Key Commands / 「デプロイ」節
 - status: mitigated（本 PR の Deploy workflow 削除が main に入った時点で解消）
 - reason（2026-08-17 の受容記録）: 当時の `DOCS_OPS.md` §6 の役割分担表は Deploy（`main` push）を「型検査 + test（ユニット）+ build + deploy」と定め、ユニットテストの省略 MAY にも「ビルドは省略しない」と明記されている。導入 PR は同表を根拠に型検査とユニットテストを追加した一方、build は追加していない。理由は、このリポジトリが**コミットされた** `packages/router/public/` をそのまま配信する設計（`AGENTS.md` の「デプロイアーキテクチャ」に明文化）であり、deploy 経路にビルドを足すと配信されるものが変わる＝設計変更にあたるためである。また全 346 アプリのビルドは約 18 分かかる（RISK-003 の外挿）。同 PR が同じ表を引用しながら1項目だけ落としているため、逸脱を PR 本文だけに残さずここへ記録する。
-- 2026-10-31 の更新: Deploy workflow を削除するため、Deploy ジョブの build 省略という逸脱は解消する。手作業では Key Commands のとおり `build-all.sh` の完了後に人が出す。CI における全アプリのビルド省略（RISK-003）と `public/` の鮮度検査の欠如（RISK-008）は引き続き受容する。
+- 2026-10-31 の更新: Deploy workflow を削除するため、Deploy ジョブの build 省略という逸脱は解消する。手作業でもコミットされた `public/` をそのまま出し、デプロイの場でビルドしない。CI における全アプリのビルド省略（RISK-003）と `public/` の鮮度検査の欠如（RISK-008）は引き続き受容する。
 - 解除条件: Deploy ジョブで build を行うか、Deploy ジョブを廃止すること。本 PR は後者でこの条件を満たす。
-- anchor: `.github/workflows/` に Deploy ジョブが無いことと、`AGENTS.md` の Key Commands にあるビルド後のデプロイ手順。配信物が壊れた場合は `node scripts/health-check-runtime.js` が本番の実体で検出する。
+- anchor: `.github/workflows/` に Deploy ジョブが無いことと、`AGENTS.md` の Key Commands にあるコミット済み `public/` のデプロイ手順。配信物が壊れた場合は `node scripts/health-check-runtime.js` が本番の実体で検出する。
 
 ## RISK-008: コミットされた `packages/router/public/` の鮮度を検証する経路が CI にもデプロイにも存在しない
 
@@ -113,7 +113,7 @@
 - location: `.github/workflows/ci.yml` / `scripts/check-asset-paths.js` / `AGENTS.md` の「デプロイ」節
 - status: accepted
 - reason（2026-08-17 の受容記録）: 当時、本番へ配信されていたのは**コミットされた** `packages/router/public/` である。しかし `ci.yml` の `Build changed apps` はアプリを `apps/<app>/dist` へビルドするだけで `public/` と突き合わせず、`scripts/check-asset-paths.js` が検査するのは ①`vite.config.ts` の `base` 値 ②`public/<app>/index.html` が絶対パスを参照していないか ③参照先ファイルの**実在** —— のみで、**ソースとの一致は一切見ない**（2026-08-17 にスクリプト全文を読んで確認）。したがって次の3つはいずれも CI 全 green で通る。①`apps/foo/src/` を変更して `public/foo/` を再生成し忘れた PR（古いアセットのまま配信される）②`apps/` にあって `public/` に無い新規アプリ（`public/` を列挙する検査なので対象にすらならない）③`apps/` から削除したが `public/<app>/` が残っているアプリ（配信され続ける）。**これは導入 PR が作った穴ではなく既存の構造だが、`merge_policy: auto-on-green` は人間の目を外すため、この穴の危険度を上げる。** 塞ぐには「全アプリをビルドして `public/` と差分比較する」検査が要り、RISK-003 と同じ約 18 分の費用がかかるため受容する。
-- 2026-10-31 の更新: 手作業への移行後は、人が `origin/production` から `build-all.sh` で再生成して配信するため、main へのマージだけで古い成果物を配信する経路は無くなる。ただし CI によるソースと `public/` の一致検査は追加しておらず、鮮度とディレクトリ集合の検査が無いという受容は維持する。
+- 2026-10-31 の更新: 手作業でもコミットされた `public/` をそのまま配信する。ソースと `public/` の一致を検査していないという受容は維持する。main へのマージだけで配信されることは無くなり、昇格 PR の本番前の確認を通る。
 - 解除条件: `public/` の鮮度を検証する検査（全ビルド + 差分比較、または `apps/` と `public/` のディレクトリ集合の一致検査）を導入した時点で `mitigated` にする。**ディレクトリ集合の一致（上記②③）だけなら安価に検査でき、部分的な解除として先に導入できる。**
 - anchor: `node scripts/health-check-runtime.js`（346 アプリの HTML を取得し参照先を実 GET する）と、デプロイ作業時の `bash scripts/build-all.sh` 実行後の `git status` —— 再生成漏れがあれば `public/` に差分が出る。どちらもレビューループの外側にある観測である。
 

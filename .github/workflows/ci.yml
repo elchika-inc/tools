@@ -197,8 +197,9 @@ jobs:
           echo "ビルドしたアプリ: $built 件 / skip: $skipped 件 / 対象外: $notdir 件"
 
       # コミットされた `packages/router/public/` の参照パスをマージ前に検査する。
-      # 本番は昇格 PR のマージ後、人が origin/production から build-all.sh を実行して
-      # 配信する。main へのマージではデプロイされない。
+      # 本番へ配信されるのは **コミットされた** `packages/router/public/` である。
+      # 昇格 PR のマージのあと、人が origin/production から配信する。
+      # main へのマージではデプロイされない。
       # build-all.sh の先頭でも同じ検査を行う。
       # 詳細: `.docs/ASSET_PATH_INCIDENT.md`
       - name: Check asset paths

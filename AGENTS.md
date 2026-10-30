@@ -33,7 +33,7 @@
 
 - test: リポジトリルートで `pnpm exec vp test <パス>`
 - check: リポジトリルートで `pnpm exec vp check <paths...>`
-- deploy: `bash scripts/build-all.sh` の完了後、`packages/router` で `pnpm run deploy`
+- deploy: `origin/production` で、`packages/router` から `pnpm run deploy`。コミットされた `public/` をそのまま出す。`bash scripts/build-all.sh` は `public/` を変える PR を作るときに流す
 
 ```bash
 # 依存関係
@@ -124,8 +124,7 @@ apps/<tool-name>/
 - 一部アプリの `index.html` に元テンプレートの title/description が残っている場合がある
 - 各アプリの `wrangler.toml` はレガシー(個別Pages デプロイ時代の名残)。現在は build-all 方式を使用
 - `packages/router/public/` はビルド生成物だが **git 管理が必須**。
-  手作業のデプロイでは、`origin/production` 上で Key Commands の deploy 手順を実行し、
-  **`build-all.sh` で生成した `public/` を人が本番へ配信する**
+  手作業でも **コミットされている `public/` の中身がそのまま本番になる**
 - 上記は `node scripts/check-asset-paths.js` で機械的に検査できる
   (build-all.sh の先頭と ci.yml に組み込み済み。違反があれば止まる)
 - **フォントは共有配信**。`scripts/build-fonts.js` が `packages/router/public/fonts/` に1セット生成し、
@@ -254,7 +253,6 @@ pnpm run dev
 初回の昇格へ進む前に、その整備を完了する。
 
 ```bash
-bash scripts/build-all.sh          # 全アプリビルド → public/ へ
 cd packages/router && pnpm run deploy  # Workers デプロイ
 ```
 
