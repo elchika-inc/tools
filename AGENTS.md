@@ -11,6 +11,9 @@
 - merge_policy: `auto-on-green`（owner `elchika-inc` の既定。DOCS_OPS §5 の owner 別既定表）。当リポジトリは `pnpm-lock.yaml` に加え、**コミットされたビルド成果物 `packages/router/public/`**（ファイル名ハッシュを含み、`scripts/build-all.sh` がアプリ単位で作り直す）という「正しさが base の内容に依存する成果物」を持つ。DOCS_OPS §5 はこの種の成果物を持つリポジトリが `auto-on-green` を宣言する場合、required status check と、strict 設定（Require branches to be up to date before merging）または merge queue の有効化を MUST とする（**この MUST は required status check の有無に依存しない**）。上記 ruleset の `required_status_checks`（context `ci`・`strict=true`）がこれを満たす。`allow_auto_merge` も `true`（2026-08-17 実測）。
   - **条件1 の対象 check（`ci`）は required に含まれているため、`gh pr merge --auto` を使ってよい**（§5「マージ機構」の前者）。`--auto` を使う場合は `--match-head-commit <判定時 head>` を付ける（§5 の MUST）。
   - エージェントがマージ操作を行う場合の記録（`agent-merge-verdict/*` コメント）は DOCS_OPS §5「エージェントのマージ記録（MUST）」が正本。`merge_policy` の値を問わず適用される。
+- deploy_branch: `main（移行前）`（`production` への移行は触るときに行う）
+- deploy_policy:
+  - `main`: auto-on-green（本番）。理由: 今の動きを続ける。`production` へ寄せるまでの宣言
 - **UI**: React 19 + TypeScript (strict)
 - **ビルド**: Vite+ (Vite 8 + Rolldown)
 - **スタイリング**: Tailwind CSS v4 (`@tailwindcss/vite`) + elchika-inc/ui (Base UI)
