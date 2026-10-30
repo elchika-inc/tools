@@ -1,0 +1,49 @@
+# 昇格 PR の head が main の祖先（同じ SHA を含む）であることを検査する。
+# pull_request_target は信頼済みの定義を使い、head 側の書き換えに影響されないために使う。
+# 未信頼なコードを実行しないよう、head の取得・実行は行わず GitHub API で比較する。
+# 導入の順序（required にする時期を含む）は導入手順に従う:
+# https://github.com/elchika-inc/standards/blob/main/recipes/production-promotion.md#導入手順
+
+name: Promotion source
+
+on:
+  pull_request_target:
+    branches: [production]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  promotion-source:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      REPO: ${{ github.repository }}
+      HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+    steps:
+      - name: 昇格元を確認
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "$HEAD_REPO" != "$REPO" ]]; then
+            echo "::error::昇格元は同一リポジトリの head に限ります"
+            exit 1
+          fi
+
+          if ! status=$(gh api "repos/$REPO/compare/main...$HEAD_SHA" --jq .status); then
+            echo "::error::main と head の比較結果を取得できませんでした"
+            exit 1
+          fi
+
+          case "$status" in
+            identical|behind)
+              echo "昇格元は main の祖先（同じ SHA を含む）です"
+              ;;
+            *)
+              echo "::error::昇格元が main の祖先であることを確認できませんでした"
+              exit 1
+              ;;
+          esac

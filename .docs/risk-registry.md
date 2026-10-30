@@ -9,24 +9,24 @@
 **再評価の契機（横断）**: 次のいずれかのタイミングで、`status: accepted` の全エントリの解除条件を評価する。
 ①`standards_version` を更新する PR ②`standards-audit` スキルの実行時 ③当該エントリの `location` に挙げたファイルを変更する PR。
 
-## RISK-001: PR CI / Deploy の型検査を段階導入している（全体では 2017 件の型エラー）
+## RISK-001: PR CI の型検査を段階導入している（全体では 2017 件の型エラー）
 
 - date: 2026-08-17
 - confidence: high
-- location: `.github/workflows/ci.yml` の `Typecheck` ステップ / `.github/workflows/deploy.yml` の `Typecheck` ステップ
+- location: `.github/workflows/ci.yml` の `Typecheck` ステップ
 - status: accepted
-- reason: standards `DOCS_OPS.md` §6 は型検査を PR CI と Deploy の独立ステップとして MUST 化する一方、「既に型エラーを抱えているプロジェクトは段階導入してよい（MAY）。緩和の内容と解除条件を `.docs/risk-registry.md` に記録する（MUST）」と定める。2026-08-17 のローカル実測で `pnpm exec vp check --no-fmt --no-lint apps packages scripts e2e` は **exit 1 / `Found 2017 errors and 7620 warnings in 6515 files`（178.8 秒）** だった。全体を対象にすると CI が恒久赤になり、`merge_policy: auto-on-green` の条件1（品質 check が green であること）を原理的に満たせなくなる。緩和として対象を「常時検査する green なベースライン `packages/router/src`（実測 exit 0 / `Found no type errors in 4 files`）」＋「PR が変更した TypeScript ファイル**そのもの**」に絞る。Deploy 側は push イベントに PR の base が無いためベースラインのみを対象にする。
+- reason: standards `DOCS_OPS.md` §6 は型検査を PR CI と Deploy の独立ステップとして MUST 化する一方、「既に型エラーを抱えているプロジェクトは段階導入してよい（MAY）。緩和の内容と解除条件を `.docs/risk-registry.md` に記録する（MUST）」と定める。2026-08-17 のローカル実測で `pnpm exec vp check --no-fmt --no-lint apps packages scripts e2e` は **exit 1 / `Found 2017 errors and 7620 warnings in 6515 files`（178.8 秒）** だった。全体を対象にすると CI が恒久赤になり、`merge_policy: auto-on-green` の条件1（品質 check が green であること）を原理的に満たせなくなる。緩和として対象を「常時検査する green なベースライン `packages/router/src`（実測 exit 0 / `Found no type errors in 4 files`）」＋「PR が変更した TypeScript ファイル**そのもの**」に絞る。当時の Deploy 側は push イベントに PR の base が無いためベースラインのみを対象にしていた。2026-10-31 の手作業への移行で Deploy workflow を削除する。PR CI の型検査の対象と緩和は維持する。
 - **粒度をファイル単位にした理由（実測）**: 当初はアプリの `src/` ディレクトリ単位にしていたが、レビューでの実測（意図的サンプル5件 + 系統サンプル16件 = **21/21 が exit 1**）により、ディレクトリ単位では**アプリを1行でも触る PR がほぼ必ず赤**になり、緩和の目的（恒久赤の回避）が達成できないことが判明した。エラーは `src/__tests__/` や `src/components/` にも散っており、`src/utils/foo.ts` を1行直す PR まで巻き込む。ファイル単位に改めた後の実測: 型エラーを持つファイルは **6515 中 853 件（約13%、うち `__tests__` 配下は186件）**。`apps/*/src/App.tsx` のサンプル7件では **3件が exit 1（4件が exit 0）** で、App.tsx は平均より密度が高い。
 - **粒度をファイル単位にしたことによる被覆の後退（残余）**: `vp check` はエラーの**報告対象を渡したファイルに限定する**。実測（2026-08-17）: `vp check --no-fmt --no-lint apps/json-formatter/src/App.tsx` は exit 0（`Found no type errors in 1 file`）だが、同じアプリの別ファイルを1つ足すと exit 1（`Found 1 error and 0 warnings in 2 files`）。したがって **`apps/foo/src/utils/bar.ts` のシグネチャを変える PR が、同じアプリの未変更の `App.tsx` を壊しても CI は green になる**（変更ファイル自身は型的に正しいため）。ディレクトリ単位だった時点ではこの型の破壊は赤で顕在化していたので、**ラウンド1の設計と比べれば被覆は縮んでいる**（ただしディレクトリ単位は 21/21 が赤で運用できないため、戻すことは別の後退になる）。`Build changed apps` もこれを拾わない —— `vp build` は型エラーがあっても exit 0 を返し、wasm 依存3アプリはそもそも skip される（RISK-006）。**この経路の検出はデプロイ時の `bash scripts/build-all.sh` まで遅延する。**
 - **残る赤への対処（判断がばらつかないように明記する）**: この緩和の下でも、既存の型エラーを持つファイルを触る PR は赤になる。赤は「触ったファイル自身の型エラー」に限られ、これは boy scout rule として意図した挙動である。赤になった PR が取るべき選択肢は次の3つで、**この順に検討する**。①そのファイルの型エラーを同じ PR で直す（既定。被覆が広がる）②型エラーの修正が本題と混ざって PR が読めなくなる規模なら、修正を先行 PR に分ける ③どちらも成立しない事情があるなら、このエントリへ当該ファイルを個別に受容として追記する（テスト側の隔離リストに相当する逃げ道。**追記する PR は理由と解除条件を必ず書く**）。**現時点で個別受容しているファイルは無い。**
-- 解除条件: `pnpm exec vp check --no-fmt --no-lint apps packages scripts e2e`（**`reason` の実測と同一の引数**）が exit 0 になった時点で、両 workflow の対象をこの引数の集合へ広げ、変更検出のステップを削除して本エントリを `mitigated` にする。段階的には「型エラー0のアプリを `Typecheck` の常時対象へ追加していく」形でも解除に向かう。
+- 解除条件: `pnpm exec vp check --no-fmt --no-lint apps packages scripts e2e`（**`reason` の実測と同一の引数**）が exit 0 になった時点で、`ci.yml` の対象をこの引数の集合へ広げ、変更検出のステップを削除して本エントリを `mitigated` にする。段階的には「型エラー0のアプリを `Typecheck` の常時対象へ追加していく」形でも解除に向かう。
 - anchor: `ci.yml` の `Typecheck` ステップの `targets` に列挙された対象そのもの。対象を狭める変更（`packages/router/src` の削除・変更検出の削除）は当該ステップの diff に現れる。加えて、実際に何を検査したかは CI 実行時のステップログ（`型検査の対象: ...` の出力）と `vp check` の集計行（`Found no type errors in N files`）に毎回残るため、対象が縮んだことをログの実測値で確認できる。
 
-## RISK-002: PR CI / Deploy のユニットテストで既存の赤 12 ファイルを隔離している
+## RISK-002: PR CI のユニットテストで既存の赤 12 ファイルを隔離している
 
 - date: 2026-08-17
 - confidence: high
-- location: `.github/workflows/ci.yml` / `.github/workflows/deploy.yml` の `Unit test` ステップの `--exclude` 群
+- location: `.github/workflows/ci.yml` の `Unit test` ステップの `--exclude` 群
 - status: accepted
 - reason: PR CI 新設以前から `main` のユニットテストは赤である。2026-08-17 のローカル実測で `pnpm exec vp test --run` は **exit 1 / `Test Files 12 failed | 698 passed (710)` / `Tests 7 failed | 6894 passed | 5 skipped (6906)` / `Errors 1`**（75.2 秒）だった。赤のまま CI へ載せると条件1（green）を原理的に満たせず、`auto-on-green` が永久に発効しない。修正はアプリ実装への変更を伴い導入 PR のスコープ外のため、**CI 側でだけ**除外する。root の `vite.config.ts` は変更していないので、ローカルの `pnpm exec vp test`（パス指定なしの全量実行）はこれらを実行し続け、失敗は隠れない。隔離適用後の実測は **exit 0 / `Test Files 698 passed (698)` / `Tests 6827 passed (6827)`**（71.0 秒）。
 - 隔離対象と原因（2026-08-17 実測）:
@@ -46,10 +46,10 @@
   | `apps/nato-phonetic/src/utils/__tests__/nato.test.ts` | アサーション失敗（`getReferenceTable` の並び順） |
   | `packages/router/src/__tests__/index.test.ts` | アサーション失敗（`should return 404 for unknown paths`） |
 
-- **この表が隔離リストの正本である。** `ci.yml` と `deploy.yml` の `--exclude` 群は同じリストの複製であり、**3箇所の一致を検査する機構は無い**。片方の workflow だけ除外を減らすとその workflow が赤くなり（fail-closed で安全側）、`deploy.yml` だけ除外を増やすと `ci` との被覆差が無言で生まれる（fail-open）。後者はこの表と両 workflow の diff を突き合わせて検出する。
-- 解除条件: 各ファイルが `pnpm exec vp test --run <パス>` で exit 0 になった時点で、その1件を両 workflow の `--exclude` とこの表から外す。12 件すべてが外れた時点でこのエントリを `mitigated` にする。**このリストへの追加は CI の被覆の縮小にあたるため、追加する PR は同じ PR でこのエントリを更新する。** 解除は `packages/router/src/__tests__/index.test.ts` から着手する —— `packages/router` は**このリポジトリで唯一コードとして本番デプロイされるパッケージ**であり、その被覆を欠いたまま RISK-004（auto-deploy の受容）の「配信前ゲートが機能する」という前提を置いているため。
+- **この表が隔離リストの正本である。** 2026-10-31 の手作業への移行で Deploy workflow を削除し、`ci.yml` の `--exclude` 群だけを複製として残す。**2箇所の一致を検査する機構は無い**。workflow だけ除外を減らすと CI が赤くなり（fail-closed で安全側）、workflow だけ除外を増やすとこの表との被覆差が無言で生まれる（fail-open）。後者はこの表と `ci.yml` の diff を突き合わせて検出する。
+- 解除条件: 各ファイルが `pnpm exec vp test --run <パス>` で exit 0 になった時点で、その1件を `ci.yml` の `--exclude` とこの表から外す。12 件すべてが外れた時点でこのエントリを `mitigated` にする。**このリストへの追加は CI の被覆の縮小にあたるため、追加する PR は同じ PR でこのエントリを更新する。** 解除は `packages/router/src/__tests__/index.test.ts` から着手する —— `packages/router` は**このリポジトリで唯一コードとして本番デプロイされるパッケージ**であり、手作業への移行後もその被覆が必要なため。
 - 緑化の検知経路: 隔離した12件は CI では二度と走らないため、緑になったことを CI は検知しない。検知は**上記「再評価の契機」で `pnpm exec vp test --run`（パス指定なし）を実行した結果**による。この全量実行がこのエントリの anchor の一部である。
-- anchor: 両 workflow の `--exclude` 行そのもの（追加・削除が PR diff に現れる）と、上記の全量 `vp test` の実行結果。加えて、`--exclude` に書いたパスが実在しなくなった場合（ファイル名変更・削除）、そのパスは何も除外せず、対象テストが赤ければ CI が赤くなる（fail-closed。除外の取りこぼしが緑に化けることはない）。
+- anchor: `ci.yml` の `--exclude` 行そのもの（追加・削除が PR diff に現れる）と、上記の全量 `vp test` の実行結果。加えて、`--exclude` に書いたパスが実在しなくなった場合（ファイル名変更・削除）、そのパスは何も除外せず、対象テストが赤ければ CI が赤くなる（fail-closed。除外の取りこぼしが緑に化けることはない）。
 
 ## RISK-003: PR CI は変更されたアプリだけをビルドする（全 346 アプリと `packages/` のビルドを行わない）
 
@@ -57,22 +57,23 @@
 - confidence: medium
 - location: `.github/workflows/ci.yml` の `Detect changes` / `Build changed apps` ステップ
 - status: accepted
-- reason: standards `DOCS_OPS.md` §6 の役割分担は PR CI に「型検査 + ビルド + ユニットテスト」を課すが、同節の基本方針は「CI が担うのは安く・決定的に落ちるチェックだけ」である。2026-08-17 のローカル実測で1アプリのビルド（`apps/url-encoder` で `pnpm run build`）は **exit 0 / real 3.11 秒**であり、346 アプリを直列にビルドすると約 18 分になる（**この 18 分は1アプリの実測からの外挿であり、GitHub-hosted runner での実測ではない**）。PR ごとにこの費用を払うのは基本方針に反する。加えて、本番へ配信されるのは**コミットされた** `packages/router/public/` であって CI のビルド産物ではない（`deploy.yml` はビルドを行わない）ため、全アプリをビルドしても配信物の正しさは担保されない（配信物側の穴は RISK-008）。
+- reason: standards `DOCS_OPS.md` §6 の役割分担は PR CI に「型検査 + ビルド + ユニットテスト」を課すが、同節の基本方針は「CI が担うのは安く・決定的に落ちるチェックだけ」である。2026-08-17 のローカル実測で1アプリのビルド（`apps/url-encoder` で `pnpm run build`）は **exit 0 / real 3.11 秒**であり、346 アプリを直列にビルドすると約 18 分になる（**この 18 分は1アプリの実測からの外挿であり、GitHub-hosted runner での実測ではない**）。PR ごとにこの費用を払うのは基本方針に反する。当時はコミットされた `packages/router/public/` をそのまま本番へ配信していたため、CI で全アプリをビルドしても配信物の正しさは担保されなかった。2026-10-31 の手作業への移行後は、人が `origin/production` から `build-all.sh` で生成した `public/` を配信する。CI のビルド産物は配信に使わず、コミットされた `public/` との一致も検査しない（RISK-008）。
 - **被覆の境界（明記）**: 差分の pathspec は `-- 'apps/'` に限定しているため、**`packages/` 配下（`router` / `mcp-server` / `design-tokens-elchika` / `wasm-utils`）と `scripts/` / root 設定の変更は、どの workflow でもビルドされない**。`packages/router/src` は型検査の常時対象に入るが、ビルドは通らない。共有パッケージの破壊は `scripts/build-all.sh`（Step 0 で `wasm-utils` を先にビルドする）を実行するデプロイ作業まで顕在化しない。
 - 残余（未検証経路）: `Build changed apps` と `Typecheck` の変更ファイル分は、**アプリを1件も変更しない PR では1度も実行されない**。導入 PR（#859）自身がこれに該当し、CI green が証明したのは「アプリを触らない PR で通ること」までである。シェルロジックは変更 0 件 / 2 件 / wasm 依存を含む 2 件の3ケースをローカルで模擬実行して確認したが、runner 上での実走は最初にアプリを変更する PR が初回になる。**その PR で赤が出た場合、まず「設計どおりの顕在化（触ったファイルの既存型エラー）」と「機構の破損」を切り分けること。**
 - 残余（差分基準のずれ）: `github.event.pull_request.base.sha` はイベント発火時点の base 先端であって merge base ではない。base が進んだ後の再実行（Re-run all jobs）では、`git diff "$BASE_SHA" HEAD` が他 PR のマージ分まで拾い、**PR が触っていないアプリが検査・ビルド対象に入りうる**（過剰検出。fail-safe 側だが、無関係な既存型エラーで赤になる原因になる）。この場合は差分ログ（`変更されたアプリ:` / `変更された TS ファイル:` の出力）で対象を確認する。
 - 解除条件: ①GitHub-hosted runner での全ビルド時間を実測し、CI の許容時間内（PR CI 全体で 10 分以内を目安とする）に収まると判明した場合、または②配信方式を「CI/Deploy でビルドして配信する」形へ変更した場合に、対象をリポジトリ全体へ広げて本エントリを `mitigated` にする。
 - anchor: `ci.yml` の `Build changed apps` ステップが、**全アプリのビルドが成功したときに**「ビルドしたアプリ: N 件 / skip: M 件 / 対象外: K 件」を出力する（検出したすべてが3つのどれかに計上され、サイレントな打ち切りにならない）。ビルドが1件でも失敗した場合は `set -e` でこの集計に到達せずステップが赤くなるため、いずれの場合も「無言で通る」ことはない。ビルドが壊れたアプリ・パッケージが `main` へ入った場合は `scripts/build-all.sh` が `set -e` で停止し、デプロイ作業の時点で顕在化する。
 
-## RISK-004: `merge_policy: auto-on-green` の採用で配信が人間の確認を経ずに起動しうる
+## RISK-004: `merge_policy: auto-on-green` の採用で配信が人間の確認を経ずに起動しうる（手作業への移行で解消）
 
 - date: 2026-08-17
 - confidence: high
-- location: `AGENTS.md` の `merge_policy` / `.github/workflows/deploy.yml`
-- status: accepted
-- reason: `DOCS_OPS.md` §5 は「`auto-on-green` は auto-deploy を意味する」と明記する。当リポジトリは `main` push を起点に `packages/router` を Cloudflare Workers へ deploy するため、前提条件が揃った後はエージェントのマージがそのまま本番配信を起動する。346 アプリを1つの Workers プロジェクトで配信しているので、誤った成果物のマージは全ツールに同時に効く（過去に vite `base` の誤りで全アプリ白画面の事故が起きている。`.docs/ASSET_PATH_INCIDENT.md`）。それでも受容するのは、配信物が静的アセットのみで巻き戻しが再 deploy で足りること、および §5 の前提条件（required status check の green・レビューサイクル収束・ブラウザ検証証跡）が配信前のゲートとして機能するためである（2026-08-17 に ruleset `id=20942268` で `ci` が required・`strict=true` として設定され、条件1 は**技術ゲート**として成立している —— RISK-009 参照）。緩和として、①`deploy.yml` へ型検査とユニットテストを追加し、CI が赤のまま配信される経路を塞いだ ②`ci.yml` にも `check-asset-paths` を置き、白画面事故の原因をマージ**前**に検出できるようにした（`deploy.yml` の同検査はマージ後にしか走らない）。**ただし RISK-008 の穴は塞いでいない。**
-- 解除条件: このエントリは配信方式そのものの受容であり、「解除」は auto-deploy をやめる（`merge_policy` を `human` へ戻す、または deploy を手動起動へ変える）ことを意味する。**受容を続ける限り `accepted` のまま**とし、下記 anchor の観測で受容が破れていないことを確認する。
-- anchor: 本番の実体を検査する `node scripts/health-check-runtime.js`（346 アプリの HTML を取得し、参照先の JS/CSS を実際に GET して 200 と content-type を確認する。結果は `.docs/health-check-result.json` に残る）。受容が破れた場合、この実行結果に 200 でないアプリが現れる。
+- location: `AGENTS.md` の `merge_policy` / `deploy_branch` / 「デプロイ」節
+- status: mitigated（本 PR の手作業への移行が main に入った時点で解消。production の ruleset の設定完了を意味しない）
+- reason（2026-08-17 の受容記録）: 当時の `DOCS_OPS.md` §5 は「`auto-on-green` は auto-deploy を意味する」と明記する。当リポジトリは `main` push を起点に `packages/router` を Cloudflare Workers へ deploy するため、前提条件が揃った後はエージェントのマージがそのまま本番配信を起動する。346 アプリを1つの Workers プロジェクトで配信しているので、誤った成果物のマージは全ツールに同時に効く（過去に vite `base` の誤りで全アプリ白画面の事故が起きている。`.docs/ASSET_PATH_INCIDENT.md`）。それでも受容するのは、配信物が静的アセットのみで巻き戻しが再 deploy で足りること、および §5 の前提条件（required status check の green・レビューサイクル収束・ブラウザ検証証跡）が配信前のゲートとして機能するためである（2026-08-17 に ruleset `id=20942268` で `ci` が required・`strict=true` として設定され、条件1 は**技術ゲート**として成立している —— RISK-009 参照）。緩和として、①`deploy.yml` へ型検査とユニットテストを追加し、CI が赤のまま配信される経路を塞いだ ②`ci.yml` にも `check-asset-paths` を置き、白画面事故の原因をマージ**前**に検出できるようにした（`deploy.yml` の同検査はマージ後にしか走らない）。**ただし RISK-008 の穴は塞いでいない。**
+- 2026-10-31 の更新: Deploy workflow を削除し、昇格 PR のマージ後に人が `origin/production` から出す形へ移す。`merge_policy: auto-on-green` は main への統合の方針であり、本番配信を起動しない。過去の受容記録は上記に残す。
+- 解除条件: auto-deploy をやめること。本 PR は workflow を削除してこの条件を満たす。production の作成・ruleset の整備・Secret の削除は司令塔と人が別に行い、初回の昇格前に確認する。
+- anchor: `.github/workflows/` にデプロイする workflow が無いことと、`AGENTS.md` の「デプロイ」節。本番の実体は引き続き `node scripts/health-check-runtime.js` で検査する（346 アプリの HTML を取得し、参照先の JS/CSS を実際に GET して 200 と content-type を確認する。結果は `.docs/health-check-result.json` に残る）。受容が破れた場合、この実行結果に 200 でないアプリが現れる。
 
 ## RISK-005: standards rev.75 §1「参照資料と要求事項の分離（MUST）」に未対応
 
@@ -94,23 +95,25 @@
 - 解除条件: 次のいずれかを行い、`packages/wasm-utils/pkg` が CI 上に存在する状態にした時点で `mitigated` にする。①CI に `wasm-pack` の導入ステップを（該当アプリが変更されたときだけ走る形で）追加する ②`packages/wasm-utils/pkg/` を git 管理下へ入れる。**判定は「CI のログに skip の `::warning::` が出ないこと」で行える。** いずれの場合も workflow の skip 分岐は自動的に無効になるため、workflow 側の変更は不要。
 - anchor: `Build changed apps` ステップが skip のたびに `::warning::` を出す（この warning はビルドの成否によらず skip の時点で出る）。これら3アプリのビルド破壊は `scripts/build-all.sh`（Step 0 で `wasm-utils` を先にビルドする）が `set -e` で停止することにより、デプロイ作業の時点で顕在化する。
 
-## RISK-007: Deploy ジョブに build ステップを置いていない（§6 の役割分担表からの逸脱）
+## RISK-007: Deploy ジョブに build ステップを置いていない（手作業への移行で解消）
 
 - date: 2026-08-17
 - confidence: medium
-- location: `.github/workflows/deploy.yml`
-- status: accepted
-- reason: `DOCS_OPS.md` §6 の役割分担表は Deploy（`main` push）を「型検査 + test（ユニット）+ build + deploy」と定め、ユニットテストの省略 MAY にも「ビルドは省略しない」と明記されている。導入 PR は同表を根拠に型検査とユニットテストを追加した一方、build は追加していない。理由は、このリポジトリが**コミットされた** `packages/router/public/` をそのまま配信する設計（`AGENTS.md` の「デプロイアーキテクチャ」に明文化）であり、deploy 経路にビルドを足すと配信されるものが変わる＝設計変更にあたるためである。また全 346 アプリのビルドは約 18 分かかる（RISK-003 の外挿）。同 PR が同じ表を引用しながら1項目だけ落としているため、逸脱を PR 本文だけに残さずここへ記録する。
-- 解除条件: 配信方式を「CI/Deploy でビルドして配信する」形へ変える設計変更を行った時点で、build ステップを追加して `mitigated` にする（RISK-003 / RISK-008 の解除条件と同じ変更で同時に解ける）。
-- anchor: `deploy.yml` のステップ列そのもの（build の有無が diff に現れる）。配信物が壊れた場合は `node scripts/health-check-runtime.js` が本番の実体で検出する。
+- location: `AGENTS.md` の Key Commands / 「デプロイ」節
+- status: mitigated（本 PR の Deploy workflow 削除が main に入った時点で解消）
+- reason（2026-08-17 の受容記録）: 当時の `DOCS_OPS.md` §6 の役割分担表は Deploy（`main` push）を「型検査 + test（ユニット）+ build + deploy」と定め、ユニットテストの省略 MAY にも「ビルドは省略しない」と明記されている。導入 PR は同表を根拠に型検査とユニットテストを追加した一方、build は追加していない。理由は、このリポジトリが**コミットされた** `packages/router/public/` をそのまま配信する設計（`AGENTS.md` の「デプロイアーキテクチャ」に明文化）であり、deploy 経路にビルドを足すと配信されるものが変わる＝設計変更にあたるためである。また全 346 アプリのビルドは約 18 分かかる（RISK-003 の外挿）。同 PR が同じ表を引用しながら1項目だけ落としているため、逸脱を PR 本文だけに残さずここへ記録する。
+- 2026-10-31 の更新: Deploy workflow を削除するため、Deploy ジョブの build 省略という逸脱は解消する。手作業では Key Commands のとおり `build-all.sh` の完了後に人が出す。CI における全アプリのビルド省略（RISK-003）と `public/` の鮮度検査の欠如（RISK-008）は引き続き受容する。
+- 解除条件: Deploy ジョブで build を行うか、Deploy ジョブを廃止すること。本 PR は後者でこの条件を満たす。
+- anchor: `.github/workflows/` に Deploy ジョブが無いことと、`AGENTS.md` の Key Commands にあるビルド後のデプロイ手順。配信物が壊れた場合は `node scripts/health-check-runtime.js` が本番の実体で検出する。
 
 ## RISK-008: コミットされた `packages/router/public/` の鮮度を検証する経路が CI にもデプロイにも存在しない
 
 - date: 2026-08-17
 - confidence: high
-- location: `.github/workflows/ci.yml` / `.github/workflows/deploy.yml` / `scripts/check-asset-paths.js`
+- location: `.github/workflows/ci.yml` / `scripts/check-asset-paths.js` / `AGENTS.md` の「デプロイ」節
 - status: accepted
-- reason: 本番へ配信されるのは**コミットされた** `packages/router/public/` である。しかし `ci.yml` の `Build changed apps` はアプリを `apps/<app>/dist` へビルドするだけで `public/` と突き合わせず、`scripts/check-asset-paths.js` が検査するのは ①`vite.config.ts` の `base` 値 ②`public/<app>/index.html` が絶対パスを参照していないか ③参照先ファイルの**実在** —— のみで、**ソースとの一致は一切見ない**（2026-08-17 にスクリプト全文を読んで確認）。したがって次の3つはいずれも CI 全 green で通る。①`apps/foo/src/` を変更して `public/foo/` を再生成し忘れた PR（古いアセットのまま配信される）②`apps/` にあって `public/` に無い新規アプリ（`public/` を列挙する検査なので対象にすらならない）③`apps/` から削除したが `public/<app>/` が残っているアプリ（配信され続ける）。**これは導入 PR が作った穴ではなく既存の構造だが、`merge_policy: auto-on-green` は人間の目を外すため、この穴の危険度を上げる。** 塞ぐには「全アプリをビルドして `public/` と差分比較する」検査が要り、RISK-003 と同じ約 18 分の費用がかかるため受容する。
+- reason（2026-08-17 の受容記録）: 当時、本番へ配信されていたのは**コミットされた** `packages/router/public/` である。しかし `ci.yml` の `Build changed apps` はアプリを `apps/<app>/dist` へビルドするだけで `public/` と突き合わせず、`scripts/check-asset-paths.js` が検査するのは ①`vite.config.ts` の `base` 値 ②`public/<app>/index.html` が絶対パスを参照していないか ③参照先ファイルの**実在** —— のみで、**ソースとの一致は一切見ない**（2026-08-17 にスクリプト全文を読んで確認）。したがって次の3つはいずれも CI 全 green で通る。①`apps/foo/src/` を変更して `public/foo/` を再生成し忘れた PR（古いアセットのまま配信される）②`apps/` にあって `public/` に無い新規アプリ（`public/` を列挙する検査なので対象にすらならない）③`apps/` から削除したが `public/<app>/` が残っているアプリ（配信され続ける）。**これは導入 PR が作った穴ではなく既存の構造だが、`merge_policy: auto-on-green` は人間の目を外すため、この穴の危険度を上げる。** 塞ぐには「全アプリをビルドして `public/` と差分比較する」検査が要り、RISK-003 と同じ約 18 分の費用がかかるため受容する。
+- 2026-10-31 の更新: 手作業への移行後は、人が `origin/production` から `build-all.sh` で再生成して配信するため、main へのマージだけで古い成果物を配信する経路は無くなる。ただし CI によるソースと `public/` の一致検査は追加しておらず、鮮度とディレクトリ集合の検査が無いという受容は維持する。
 - 解除条件: `public/` の鮮度を検証する検査（全ビルド + 差分比較、または `apps/` と `public/` のディレクトリ集合の一致検査）を導入した時点で `mitigated` にする。**ディレクトリ集合の一致（上記②③）だけなら安価に検査でき、部分的な解除として先に導入できる。**
 - anchor: `node scripts/health-check-runtime.js`（346 アプリの HTML を取得し参照先を実 GET する）と、デプロイ作業時の `bash scripts/build-all.sh` 実行後の `git status` —— 再生成漏れがあれば `public/` に差分が出る。どちらもレビューループの外側にある観測である。
 
