@@ -145,7 +145,6 @@ jobs:
             --exclude 'apps/geo-distance/src/utils/__tests__/geoDistance.test.ts' \
             --exclude 'apps/k8s-yaml-generator/src/utils/__tests__/k8sGenerator.test.ts' \
             --exclude 'apps/markdown-to-slides/src/utils/__tests__/slideParser.test.ts' \
-            --exclude 'apps/nato-phonetic/src/utils/__tests__/nato.test.ts' \
             --exclude 'packages/router/src/__tests__/index.test.ts'
 
       # 全 346 アプリのビルドは PR ごとに回すには高すぎる（§6「安く・決定的に落ちる

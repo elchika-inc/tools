@@ -22,13 +22,14 @@
 - 解除条件: `pnpm exec vp check --no-fmt --no-lint apps packages scripts e2e`（**`reason` の実測と同一の引数**）が exit 0 になった時点で、`ci.yml` の対象をこの引数の集合へ広げ、変更検出のステップを削除して本エントリを `mitigated` にする。段階的には「型エラー0のアプリを `Typecheck` の常時対象へ追加していく」形でも解除に向かう。
 - anchor: `ci.yml` の `Typecheck` ステップの `targets` に列挙された対象そのもの。対象を狭める変更（`packages/router/src` の削除・変更検出の削除）は当該ステップの diff に現れる。加えて、実際に何を検査したかは CI 実行時のステップログ（`型検査の対象: ...` の出力）と `vp check` の集計行（`Found no type errors in N files`）に毎回残るため、対象が縮んだことをログの実測値で確認できる。
 
-## RISK-002: PR CI のユニットテストで既存の赤 12 ファイルを隔離している
+## RISK-002: PR CI のユニットテストで既存の赤 11 ファイルを隔離している
 
 - date: 2026-08-17
 - confidence: high
 - location: `.github/workflows/ci.yml` の `Unit test` ステップの `--exclude` 群
 - status: accepted
 - reason: PR CI 新設以前から `main` のユニットテストは赤である。2026-08-17 のローカル実測で `pnpm exec vp test --run` は **exit 1 / `Test Files 12 failed | 698 passed (710)` / `Tests 7 failed | 6894 passed | 5 skipped (6906)` / `Errors 1`**（75.2 秒）だった。赤のまま CI へ載せると条件1（green）を原理的に満たせず、`auto-on-green` が永久に発効しない。修正はアプリ実装への変更を伴い導入 PR のスコープ外のため、**CI 側でだけ**除外する。root の `vite.config.ts` は変更していないので、ローカルの `pnpm exec vp test`（パス指定なしの全量実行）はこれらを実行し続け、失敗は隠れない。隔離適用後の実測は **exit 0 / `Test Files 698 passed (698)` / `Tests 6827 passed (6827)`**（71.0 秒）。
+- 2026-10-31: `nato-phonetic` のテストの期待を修正し、対象テストが exit 0 になったため隔離を解除。現在の隔離対象は 11 件。
 - 隔離対象と原因（2026-08-17 実測）:
 
   | ファイル | 原因 |
@@ -43,12 +44,11 @@
   | `apps/geo-distance/src/utils/__tests__/geoDistance.test.ts` | アサーション失敗（Tokyo–New York の距離） |
   | `apps/k8s-yaml-generator/src/utils/__tests__/k8sGenerator.test.ts` | アサーション失敗（`handles empty data`） |
   | `apps/markdown-to-slides/src/utils/__tests__/slideParser.test.ts` | アサーション失敗（`renders blockquotes`） |
-  | `apps/nato-phonetic/src/utils/__tests__/nato.test.ts` | アサーション失敗（`getReferenceTable` の並び順） |
   | `packages/router/src/__tests__/index.test.ts` | アサーション失敗（`should return 404 for unknown paths`） |
 
 - **この表が隔離リストの正本である。** 2026-10-31 の手作業への移行で Deploy workflow を削除し、`ci.yml` の `--exclude` 群だけを複製として残す。**2箇所の一致を検査する機構は無い**。workflow だけ除外を減らすと CI が赤くなり（fail-closed で安全側）、workflow だけ除外を増やすとこの表との被覆差が無言で生まれる（fail-open）。後者はこの表と `ci.yml` の diff を突き合わせて検出する。
-- 解除条件: 各ファイルが `pnpm exec vp test --run <パス>` で exit 0 になった時点で、その1件を `ci.yml` の `--exclude` とこの表から外す。12 件すべてが外れた時点でこのエントリを `mitigated` にする。**このリストへの追加は CI の被覆の縮小にあたるため、追加する PR は同じ PR でこのエントリを更新する。** 解除は `packages/router/src/__tests__/index.test.ts` から着手する —— `packages/router` は**このリポジトリで唯一コードとして本番デプロイされるパッケージ**であり、手作業への移行後もその被覆が必要なため。
-- 緑化の検知経路: 隔離した12件は CI では二度と走らないため、緑になったことを CI は検知しない。検知は**上記「再評価の契機」で `pnpm exec vp test --run`（パス指定なし）を実行した結果**による。この全量実行がこのエントリの anchor の一部である。
+- 解除条件: 各ファイルが `pnpm exec vp test --run <パス>` で exit 0 になった時点で、その1件を `ci.yml` の `--exclude` とこの表から外す。残る 11 件すべてが外れた時点でこのエントリを `mitigated` にする。**このリストへの追加は CI の被覆の縮小にあたるため、追加する PR は同じ PR でこのエントリを更新する。** 解除は `packages/router/src/__tests__/index.test.ts` から着手する —— `packages/router` は**このリポジトリで唯一コードとして本番デプロイされるパッケージ**であり、手作業への移行後もその被覆が必要なため。
+- 緑化の検知経路: 隔離した11件は CI では二度と走らないため、緑になったことを CI は検知しない。検知は**上記「再評価の契機」で `pnpm exec vp test --run`（パス指定なし）を実行した結果**による。この全量実行がこのエントリの anchor の一部である。
 - anchor: `ci.yml` の `--exclude` 行そのもの（追加・削除が PR diff に現れる）と、上記の全量 `vp test` の実行結果。加えて、`--exclude` に書いたパスが実在しなくなった場合（ファイル名変更・削除）、そのパスは何も除外せず、対象テストが赤ければ CI が赤くなる（fail-closed。除外の取りこぼしが緑に化けることはない）。
 
 ## RISK-003: PR CI は変更されたアプリだけをビルドする（全 346 アプリと `packages/` のビルドを行わない）
