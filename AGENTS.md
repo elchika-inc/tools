@@ -6,8 +6,8 @@
 
 ## Tech Stack
 
-- standards_version: 2026-08-17 (rev.77)。
-- branch_policy: `protected`（PR 必須で、直 push の bypass を設けない）。2026-08-17 実測: ruleset `id=20942268` / `name=main` / `enforcement=active` / 対象 `refs/heads/main` / **`bypass_actors` は空** / rules は `pull_request`（`required_approving_review_count=0`・merge / squash / rebase を許可）と `required_status_checks`（context は **`ci`** の1本・`strict_required_status_checks_policy=true`）。
+- standards_version: 2026-10-31 (rev.119)。
+- branch_policy: `protected`（PR 必須で、直 push の bypass を設けない）。2026-08-17 実測: ruleset `id=20942268` / `name=main` / `enforcement=active` / 対象 `refs/heads/main` / **`bypass_actors` は空** / rules は `pull_request`（`required_approving_review_count=0`・merge / squash / rebase を許可）と `required_status_checks`（context は **`ci`** の1本・`strict_required_status_checks_policy=true`）。 2026-10-31 実測: `main` の ruleset に `deletion` と `non_fast_forward` を足した。`production` は ruleset `id=26252766` / `name=production` / `enforcement=active` / 対象 `refs/heads/production` / **`bypass_actors` は空** / rules は `deletion`・`non_fast_forward`・`pull_request`（`required_approving_review_count=0`・`allowed_merge_methods` は `merge` だけ）・`required_status_checks`（context は `ci` と `promotion-source`・`strict_required_status_checks_policy=false`）。
 - merge_policy: `auto-on-green`（owner `elchika-inc` の既定。DOCS_OPS §5 の owner 別既定表）。当リポジトリは `pnpm-lock.yaml` に加え、**コミットされたビルド成果物 `packages/router/public/`**（ファイル名ハッシュを含み、`scripts/build-all.sh` がアプリ単位で作り直す）という「正しさが base の内容に依存する成果物」を持つ。DOCS_OPS §5 はこの種の成果物を持つリポジトリが `auto-on-green` を宣言する場合、required status check と、strict 設定（Require branches to be up to date before merging）または merge queue の有効化を MUST とする（**この MUST は required status check の有無に依存しない**）。上記 ruleset の `required_status_checks`（context `ci`・`strict=true`）がこれを満たす。`allow_auto_merge` も `true`（2026-08-17 実測）。
   - **条件1 の対象 check（`ci`）は required に含まれているため、`gh pr merge --auto` を使ってよい**（§5「マージ機構」の前者）。`--auto` を使う場合は `--match-head-commit <判定時 head>` を付ける（§5 の MUST）。
   - エージェントがマージ操作を行う場合の記録（`agent-merge-verdict/*` コメント）は DOCS_OPS §5「エージェントのマージ記録（MUST）」が正本。`merge_policy` の値を問わず適用される。
