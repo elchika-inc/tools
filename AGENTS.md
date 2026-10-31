@@ -244,7 +244,7 @@ pnpm run dev
 全アプリを1つの Cloudflare Workers プロジェクトとしてデプロイ。
 
 本番へ出すのは、昇格 PR を人の承認でマージしたあと、人が `origin/production` から行う。
-エージェントはデプロイのコマンドを実行しない。人は作業ツリーが clean なことを確認し、
+`pnpm run deploy` を含むデプロイの操作は人が行い、エージェントは実行しない。人は作業ツリーが clean なことを確認し、
 `git fetch origin`、`git switch --detach origin/production` の順に実行してから、次の手順で出す。
 デプロイ記録の ID と `origin/production` の SHA を昇格 PR の「本番に出た後の確認」に残す。
 正本は standards の [本番への昇格手順](https://github.com/elchika-inc/standards/blob/main/recipes/production-promotion.md)。
