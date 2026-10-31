@@ -6,14 +6,13 @@
 
 ## Tech Stack
 
-- standards_version: 2026-08-17 (rev.77)。
-- branch_policy: `protected`（PR 必須で、直 push の bypass を設けない）。2026-08-17 実測: ruleset `id=20942268` / `name=main` / `enforcement=active` / 対象 `refs/heads/main` / **`bypass_actors` は空** / rules は `pull_request`（`required_approving_review_count=0`・merge / squash / rebase を許可）と `required_status_checks`（context は **`ci`** の1本・`strict_required_status_checks_policy=true`）。
+- standards_version: 2026-10-31 (rev.119)。
+- branch_policy: `protected`（PR 必須で、直 push の bypass を設けない）。2026-08-17 実測: ruleset `id=20942268` / `name=main` / `enforcement=active` / 対象 `refs/heads/main` / **`bypass_actors` は空** / rules は `pull_request`（`required_approving_review_count=0`・merge / squash / rebase を許可）と `required_status_checks`（context は **`ci`** の1本・`strict_required_status_checks_policy=true`）。 2026-10-31 実測: `main` の ruleset に `deletion` と `non_fast_forward` を足した。`production` は ruleset `id=26252766` / `name=production` / `enforcement=active` / 対象 `refs/heads/production` / **`bypass_actors` は空** / rules は `deletion`・`non_fast_forward`・`pull_request`（`required_approving_review_count=0`・`allowed_merge_methods` は `merge` だけ）・`required_status_checks`（context は `ci` と `promotion-source`・`strict_required_status_checks_policy=false`）。
 - merge_policy: `auto-on-green`（owner `elchika-inc` の既定。DOCS_OPS §5 の owner 別既定表）。当リポジトリは `pnpm-lock.yaml` に加え、**コミットされたビルド成果物 `packages/router/public/`**（ファイル名ハッシュを含み、`scripts/build-all.sh` がアプリ単位で作り直す）という「正しさが base の内容に依存する成果物」を持つ。DOCS_OPS §5 はこの種の成果物を持つリポジトリが `auto-on-green` を宣言する場合、required status check と、strict 設定（Require branches to be up to date before merging）または merge queue の有効化を MUST とする（**この MUST は required status check の有無に依存しない**）。上記 ruleset の `required_status_checks`（context `ci`・`strict=true`）がこれを満たす。`allow_auto_merge` も `true`（2026-08-17 実測）。
   - **条件1 の対象 check（`ci`）は required に含まれているため、`gh pr merge --auto` を使ってよい**（§5「マージ機構」の前者）。`--auto` を使う場合は `--match-head-commit <判定時 head>` を付ける（§5 の MUST）。
   - エージェントがマージ操作を行う場合の記録（`agent-merge-verdict/*` コメント）は DOCS_OPS §5「エージェントのマージ記録（MUST）」が正本。`merge_policy` の値を問わず適用される。
-- deploy_branch: `main（移行前）`（`production` への移行は触るときに行う）
-- deploy_policy:
-  - `main`: auto-on-green（本番）。理由: 今の動きを続ける。`production` へ寄せるまでの宣言
+  - `main` へのマージはデプロイを起動しない。本番への昇格には人の承認が必要で、配信は「デプロイ」節の手順で人が行う。
+- deploy_branch: `production`（手作業でデプロイする。`deploy_policy` の行は書かない）
 - **UI**: React 19 + TypeScript (strict)
 - **ビルド**: Vite+ (Vite 8 + Rolldown)
 - **スタイリング**: Tailwind CSS v4 (`@tailwindcss/vite`) + elchika-inc/ui (Base UI)
@@ -34,7 +33,7 @@
 
 - test: リポジトリルートで `pnpm exec vp test <パス>`
 - check: リポジトリルートで `pnpm exec vp check <paths...>`
-- deploy: `bash scripts/build-all.sh` の完了後、`packages/router` で `pnpm run deploy`
+- deploy: `origin/production` で、`packages/router` から `pnpm run deploy`。コミットされた `public/` をそのまま出す。`bash scripts/build-all.sh` は `public/` を変える PR を作るときに流す
 
 ```bash
 # 依存関係
@@ -125,10 +124,9 @@ apps/<tool-name>/
 - 一部アプリの `index.html` に元テンプレートの title/description が残っている場合がある
 - 各アプリの `wrangler.toml` はレガシー(個別Pages デプロイ時代の名残)。現在は build-all 方式を使用
 - `packages/router/public/` はビルド生成物だが **git 管理が必須**。
-  `.github/workflows/deploy.yml` は `wrangler deploy` のみでビルドを行わないため、
-  **コミットされている `public/` の中身がそのまま本番になる**
+  手作業でも **コミットされている `public/` の中身がそのまま本番になる**
 - 上記は `node scripts/check-asset-paths.js` で機械的に検査できる
-  (build-all.sh の先頭と deploy.yml のデプロイ前に組み込み済み。違反があれば止まる)
+  (build-all.sh の先頭と ci.yml に組み込み済み。違反があれば止まる)
 - **フォントは共有配信**。`scripts/build-fonts.js` が `packages/router/public/fonts/` に1セット生成し、
   各アプリの `index.html` は `<link rel="stylesheet" href="/fonts/fonts.css">` で参照する
 - **Vite の `base: './'` は HTML 内の絶対パスも相対化する**ため、`build-all.sh` から呼ばれる
@@ -233,7 +231,7 @@ pnpm run dev
 | workflow | trigger | 内容 |
 |---|---|---|
 | `.github/workflows/ci.yml` | `pull_request` | 型検査 → ユニットテスト → 変更アプリのビルド → アセットパス検査。check 名は **`ci`** |
-| `.github/workflows/deploy.yml` | `push: [main]` | 型検査 → ユニットテスト → アセットパス検査 → Workers deploy |
+| `.github/workflows/promotion-source.yml` | `pull_request_target`（`production` 宛て） | 同一リポジトリの head が `main` の祖先（同じ SHA を含む）であることを検査。check 名は **`promotion-source`** |
 
 - **required status check は `ci`**（`ci.yml` の job id。job に `name:` を置いていないので出所は1箇所）。ruleset `main`（id=20942268）に `strict=true` で設定済み。現構成は job 1本で matrix を持たないため、matrix 展開名のように名前が消えることがない。**job を分割・改名するときは、集約 job を立てて required の対象を `ci` という固定名に保つこと**（required が存在しない名前を指すと、以後すべての PR が「Expected — waiting」で永久に BLOCKED になる）。
 - **lint / fmt は CI で実行しない。** ローカルの `vp check` / `vp fmt` が一次責任者（standards `DOCS_OPS.md` §6）。
@@ -245,8 +243,16 @@ pnpm run dev
 
 全アプリを1つの Cloudflare Workers プロジェクトとしてデプロイ。
 
+本番へ出すのは、昇格 PR を人の承認でマージしたあと、人が `origin/production` から行う。
+`pnpm run deploy` を含むデプロイの操作は人が行い、エージェントは実行しない。人は作業ツリーが clean なことを確認し、
+`git fetch origin`、`git switch --detach origin/production` の順に実行してから、次の手順で出す。
+デプロイ記録の ID と `origin/production` の SHA を昇格 PR の「本番に出た後の確認」に残す。
+正本は standards の [本番への昇格手順](https://github.com/elchika-inc/standards/blob/main/recipes/production-promotion.md)。
+
+`production` の作成と ruleset の整備は司令塔と人が別に行い、設定後の実測値を後続 PR で記録する。
+初回の昇格へ進む前に、その整備を完了する。
+
 ```bash
-bash scripts/build-all.sh          # 全アプリビルド → public/ へ
 cd packages/router && pnpm run deploy  # Workers デプロイ
 ```
 
